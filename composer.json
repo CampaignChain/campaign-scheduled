@@ -1,0 +1,19 @@
+{
+    "name": "campaignchain/campaign-scheduled",
+    "description": "A campaign with a start and end date.",
+    "keywords": ["campaign","scheduled"],
+    "type": "campaignchain-campaign",
+    "homepage": "http://www.campaignchain.com",
+    "license": "Apache-2.0",
+    "authors": [
+        {
+            "name": "Sandro Groganz",
+            "email": "sandro@campaignchain.com"
+        }
+    ],
+    "require": {
+        "campaignchain/core": "dev-master",
+        "campaignchain/hook-duration": "dev-master",
+        "campaignchain/hook-assignee": "dev-master"
+    }
+}
