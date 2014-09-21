@@ -15,5 +15,8 @@
         "campaignchain/core": "dev-master",
         "campaignchain/hook-duration": "dev-master",
         "campaignchain/hook-assignee": "dev-master"
+    },
+    "autoload": {
+        "psr-4": { "CampaignChain\\Campaign\\ScheduledCampaignBundle\\": "" }
     }
 }
