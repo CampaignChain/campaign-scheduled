@@ -5,6 +5,18 @@
 # For the full copyright and license information, please view the LICENSE
 # file that was distributed with this source code.
 
+campaignchain_campaign_scheduled_plan_timeline:
+    pattern:  /campaign/scheduled/plan/timeline
+    defaults: { _controller: CampaignChainCampaignScheduledCampaignBundle:Plan:timeline }
+
+campaignchain_campaign_scheduled_plan_timeline_fullscreen:
+    pattern:  /campaign/scheduled/plan/timeline/fullscreen
+    defaults: { _controller: CampaignChainCampaignScheduledCampaignBundle:Plan:timelineFullScreen }
+
+campaignchain_campaign_scheduled_plan_calendar:
+    pattern:  /campaign/scheduled/plan/calendar
+    defaults: { _controller: CampaignChainCampaignScheduledCampaignBundle:Plan:calendar }
+
 campaignchain_campaign_scheduled_new:
     pattern:  /campaign/scheduled/new
     defaults: { _controller: CampaignChainCampaignScheduledCampaignBundle:ScheduledCampaign:new }
