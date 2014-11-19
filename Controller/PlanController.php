@@ -21,7 +21,6 @@ class PlanController extends Controller
                 'page_title' => 'Timeline',
                 'gantt_tasks' => $this->get('campaignchain.core.model.dhtmlxgantt')->getTasks(),
                 'gantt_toolbar_status' => 'default',
-                'campaignchain_style' => $this->container->getParameter('campaignchain_core')['style'],
                 'path_embedded' => $this->generateUrl('campaignchain_campaign_scheduled_plan_timeline'),
                 'path_fullscreen' =>  $this->generateUrl('campaignchain_campaign_scheduled_plan_timeline_fullscreen'),
             ));
@@ -34,7 +33,6 @@ class PlanController extends Controller
                 'page_title' => 'Timeline',
                 'gantt_tasks' => $this->get('campaignchain.core.model.dhtmlxgantt')->getTasks(),
                 'gantt_toolbar_status' => 'fullscreen',
-                'campaignchain_style' => $this->container->getParameter('campaignchain_core')['style'],
                 'path_embedded' => $this->generateUrl('campaignchain_campaign_scheduled_plan_timeline'),
                 'path_fullscreen' =>  $this->generateUrl('campaignchain_campaign_scheduled_plan_timeline_fullscreen'),
             ));
