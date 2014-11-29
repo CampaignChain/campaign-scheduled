@@ -30,7 +30,7 @@ campaignchain_campaign_scheduled_edit_modal:
     defaults: { _controller: CampaignChainCampaignScheduledCampaignBundle:ScheduledCampaign:editModal }
 
 campaignchain_campaign_scheduled_edit_api:
-    pattern:  /api/v1/campaign/scheduled/{id}/edit
+    pattern:  /api/private/campaign/scheduled/{id}/edit
     defaults: { _controller: CampaignChainCampaignScheduledCampaignBundle:ScheduledCampaign:editApi }
     options:
         expose: true
