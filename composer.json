@@ -18,5 +18,20 @@
     },
     "autoload": {
         "psr-4": { "CampaignChain\\Campaign\\ScheduledCampaignBundle\\": "" }
+    },
+    "extra": {
+        "campaignchain": {
+            "kernel": {
+                "classes": [
+                    "CampaignChain\\Campaign\\ScheduledCampaignBundle\\CampaignChainCampaignScheduledCampaignBundle"
+                ],
+                "routing":
+                {
+                    "name": "campaignchain_campaign_scheduled_campaign",
+                    "resource": "@CampaignChainCampaignScheduledCampaignBundle/Resources/config/routing.yml",
+                    "prefix": "/"
+                }
+            }
+        }
     }
 }
