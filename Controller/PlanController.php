@@ -33,7 +33,7 @@ class PlanController extends Controller
                 'page_title' => 'Plan in Timeline',
                 'gantt_tasks' => $this->get('campaignchain.core.model.dhtmlxgantt')->getTasks(),
                 'gantt_toolbar_status' => 'fullscreen',
-                'path_embedded' => $this->generateUrl('campaignchain_campaign_scheduled_plan_timeline'),
+                'path_fullscreen_close' => $this->generateUrl('campaignchain_campaign_scheduled_plan_timeline'),
                 'path_fullscreen' =>  $this->generateUrl('campaignchain_campaign_scheduled_plan_timeline_fullscreen'),
             ));
     }
