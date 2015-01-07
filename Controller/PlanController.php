@@ -18,7 +18,7 @@ class PlanController extends Controller
         return $this->render(
             'CampaignChainCoreBundle:Plan/Timeline:index.html.twig',
             array(
-                'page_title' => 'Plan',
+                'page_title' => 'Plan in Timeline',
                 'gantt_tasks' => $this->get('campaignchain.core.model.dhtmlxgantt')->getTasks(),
                 'gantt_toolbar_status' => 'default',
                 'path_embedded' => $this->generateUrl('campaignchain_campaign_scheduled_plan_timeline'),
@@ -42,7 +42,7 @@ class PlanController extends Controller
         return $this->render(
             'CampaignChainCoreBundle:Plan/Calendar:index.html.twig',
             array(
-                'page_title' => 'Plan',
+                'page_title' => 'Plan in Calendar',
                 'events' => $this->get('campaignchain.core.model.fullcalendar')->getEvents(),
             ));
     }
