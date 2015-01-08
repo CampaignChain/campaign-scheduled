@@ -182,7 +182,7 @@ class ScheduledCampaignController extends Controller
         $repository->persist($campaign);
 
         $hookService = $this->get('campaignchain.core.hook');
-        $campaign = $hookService->processHooks(self::BUNDLE_NAME, self::MODULE_IDENTIFIER, $campaign, $data);
+        $hookService->processHooks(self::BUNDLE_NAME, self::MODULE_IDENTIFIER, $campaign, $data);
 
         $repository->flush();
 
