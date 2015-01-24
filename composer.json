@@ -12,9 +12,9 @@
         }
     ],
     "require": {
-        "campaignchain/core": "1.0.0-alpha.4",
-        "campaignchain/hook-duration": "1.0.0-alpha.4",
-        "campaignchain/hook-assignee": "1.0.0-alpha.3"
+        "campaignchain/core": "1.0.0-alpha.4 - 1.0.0",
+        "campaignchain/hook-duration": "1.0.0-alpha.4 - 1.0.0",
+        "campaignchain/hook-assignee": "1.0.0-alpha.3 - 1.0.0"
     },
     "autoload": {
         "psr-4": { "CampaignChain\\Campaign\\ScheduledCampaignBundle\\": "" }
