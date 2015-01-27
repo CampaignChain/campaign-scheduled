@@ -12,14 +12,17 @@
         }
     ],
     "require": {
-        "campaignchain/core": "1.0.0-alpha.4 - 1.0.0",
-        "campaignchain/hook-duration": "1.0.0-alpha.4 - 1.0.0",
-        "campaignchain/hook-assignee": "1.0.0-alpha.3 - 1.0.0"
+        "campaignchain/core": "1.0.0@beta - 1.0.0@rc",
+        "campaignchain/hook-duration": "1.0.0@alpha - 1.0.0@rc",
+        "campaignchain/hook-assignee": "1.0.0@alpha - 1.0.0@rc"
     },
     "autoload": {
         "psr-4": { "CampaignChain\\Campaign\\ScheduledCampaignBundle\\": "" }
     },
     "extra": {
+        "branch-alias": {
+            "dev-1.0.0-beta.1": "1.0.0-dev"
+        },
         "campaignchain": {
             "kernel": {
                 "classes": [
