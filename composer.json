@@ -12,14 +12,9 @@
         }
     ],
     "require": {
-<<<<<<< HEAD
         "campaignchain/core": "dev-master",
         "campaignchain/hook-duration": "dev-master",
-=======
-        "campaignchain/core": "dev-master",
-        "campaignchain/hook-duration": "dev-master",
->>>>>>> 1.0.0-beta.1
-        "campaignchain/hook-assignee": "1.0.0-alpha.3"
+        "campaignchain/hook-assignee": "dev-master"
     },
     "autoload": {
         "psr-4": { "CampaignChain\\Campaign\\ScheduledCampaignBundle\\": "" }
