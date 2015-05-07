@@ -13,6 +13,10 @@ campaignchain_campaign_scheduled_plan_timeline_fullscreen:
     pattern:  /campaign/scheduled/plan/timeline/fullscreen
     defaults: { _controller: CampaignChainCampaignScheduledCampaignBundle:Plan:timelineFullScreen }
 
+campaignchain_campaign_scheduled_plan_timeline_detail:
+    pattern:  /campaign/scheduled/plan/timeline/{id}
+    defaults: { _controller: CampaignChainCampaignScheduledCampaignBundle:Plan:timelineDetail }
+
 campaignchain_campaign_scheduled_plan_calendar:
     pattern:  /campaign/scheduled/plan/calendar
     defaults: { _controller: CampaignChainCampaignScheduledCampaignBundle:Plan:calendar }

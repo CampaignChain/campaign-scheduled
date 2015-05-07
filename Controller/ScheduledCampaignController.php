@@ -26,26 +26,6 @@ class ScheduledCampaignController extends Controller
     const BUNDLE_NAME = 'campaignchain/campaign-scheduled';
     const MODULE_IDENTIFIER = 'campaignchain-scheduled';
 
-    public function indexAction(){
-        $repository = $this->getDoctrine()
-            ->getRepository('CampaignChainCoreBundle:Campaign');
-
-        $query = $repository->createQueryBuilder('campaign')
-            ->where('campaign.startDate IS NOT NULL')
-            ->andWhere('campaign.endDate IS NOT NULL')
-            ->orderBy('campaign.startDate', 'DESC')
-            ->getQuery();
-
-        $repository_campaigns = $query->getResult();
-
-        return $this->render(
-            'CampaignChainCoreBundle:Campaign:index.html.twig',
-            array(
-                'page_title' => 'Campaigns',
-                'repository_campaigns' => $repository_campaigns
-            ));
-    }
-
     public function newAction(Request $request)
     {
         // create a campaign and give it some dummy data for this example
@@ -98,7 +78,7 @@ class ScheduledCampaignController extends Controller
         return $this->render(
             'CampaignChainCoreBundle:Base:new.html.twig',
             array(
-                'page_title' => 'Create New Campaign',
+                'page_title' => 'Create New Scheduled Campaign',
                 'form' => $form->createView(),
             ));
     }
@@ -138,7 +118,7 @@ class ScheduledCampaignController extends Controller
         return $this->render(
             'CampaignChainCoreBundle:Base:new.html.twig',
             array(
-                'page_title' => 'Edit Campaign',
+                'page_title' => 'Edit Scheduled Campaign',
                 'form' => $form->createView(),
             ));
     }
@@ -160,7 +140,7 @@ class ScheduledCampaignController extends Controller
         return $this->render(
             'CampaignChainCoreBundle:Base:new_modal.html.twig',
             array(
-                'page_title' => 'Edit Campaign',
+                'page_title' => 'Edit Scheduled Campaign',
                 'form' => $form->createView(),
             ));
     }

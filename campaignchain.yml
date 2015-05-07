@@ -14,6 +14,7 @@ modules:
             edit_modal: campaignchain_campaign_scheduled_edit_modal
             edit_api: campaignchain_campaign_scheduled_edit_api
             plan: campaignchain_campaign_scheduled_plan_timeline
+            plan_detail: campaignchain_campaign_scheduled_plan_timeline_detail
         hooks:
             campaignchain-due: false
             campaignchain-duration: true

@@ -14,12 +14,17 @@ use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 
 class PlanController extends Controller
 {
+    const BUNDLE_NAME = 'campaignchain/campaign-scheduled';
+    const MODULE_IDENTIFIER = 'campaignchain-scheduled';
+
     public function timelineAction(){
         return $this->render(
             'CampaignChainCoreBundle:Plan/Timeline:index.html.twig',
             array(
-                'page_title' => 'Plan in Timeline',
-                'gantt_tasks' => $this->get('campaignchain.core.model.dhtmlxgantt')->getTasks(),
+                'page_title' => 'Plan Scheduled Campaigns',
+                'gantt_tasks' => $this->get('campaignchain.core.model.dhtmlxgantt')->getTasks(
+                        self::BUNDLE_NAME, self::MODULE_IDENTIFIER
+                    ),
                 'gantt_toolbar_status' => 'default',
                 'path_embedded' => $this->generateUrl('campaignchain_campaign_scheduled_plan_timeline'),
                 'path_fullscreen' =>  $this->generateUrl('campaignchain_campaign_scheduled_plan_timeline_fullscreen'),
@@ -30,8 +35,10 @@ class PlanController extends Controller
         return $this->render(
             'CampaignChainCoreBundle:Plan/Timeline:fullscreen.html.twig',
             array(
-                'page_title' => 'Plan in Timeline',
-                'gantt_tasks' => $this->get('campaignchain.core.model.dhtmlxgantt')->getTasks(),
+                'page_title' => 'Plan Scheduled Campaigns',
+                'gantt_tasks' => $this->get('campaignchain.core.model.dhtmlxgantt')->getTasks(
+                        self::BUNDLE_NAME, self::MODULE_IDENTIFIER
+                    ),
                 'gantt_toolbar_status' => 'fullscreen',
                 'path_fullscreen_close' => $this->generateUrl('campaignchain_campaign_scheduled_plan_timeline'),
                 'path_fullscreen' =>  $this->generateUrl('campaignchain_campaign_scheduled_plan_timeline_fullscreen'),
@@ -42,8 +49,10 @@ class PlanController extends Controller
         return $this->render(
             'CampaignChainCoreBundle:Plan/Calendar:index.html.twig',
             array(
-                'page_title' => 'Plan in Calendar',
-                'events' => $this->get('campaignchain.core.model.fullcalendar')->getEvents(),
+                'page_title' => 'Plan Scheduled Campaigns',
+                'events' => $this->get('campaignchain.core.model.fullcalendar')->getEvents(
+                        self::BUNDLE_NAME, self::MODULE_IDENTIFIER
+                    ),
             ));
     }
 }
