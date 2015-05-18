@@ -166,6 +166,9 @@ class ScheduledCampaignController extends Controller
 
         $repository->flush();
 
+        $responseData['start_date'] = $campaign->getStartDate()->format(\DateTime::ISO8601);
+        $responseData['end_date'] = $campaign->getEndDate()->format(\DateTime::ISO8601);
+
         $encoders = array(new JsonEncoder());
         $normalizers = array(new GetSetMethodNormalizer());
         $serializer = new Serializer($normalizers, $encoders);
