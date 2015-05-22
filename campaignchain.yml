@@ -15,11 +15,11 @@ modules:
             edit_api: campaignchain_campaign_scheduled_edit_api
             plan: campaignchain_campaign_scheduled_plan_timeline
             plan_detail: campaignchain_campaign_scheduled_plan_timeline_detail
+            convert_tpl: campaignchain_campaign_scheduled_convert_tpl
         hooks:
-            campaignchain-due: false
-            campaignchain-duration: true
-            campaignchain-budget: false
-            campaignchain-work: false
-            campaignchain-milestone: false
-            campaignchain-log: false
-            campaignchain-assignee: true
+            default:
+                campaignchain-duration: true
+                campaignchain-assignee: true
+            convert_tpl:
+                campaignchain-due: true
+                campaignchain-assignee: true

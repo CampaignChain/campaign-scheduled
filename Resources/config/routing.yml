@@ -38,3 +38,7 @@ campaignchain_campaign_scheduled_edit_api:
     defaults: { _controller: CampaignChainCampaignScheduledCampaignBundle:ScheduledCampaign:editApi }
     options:
         expose: true
+
+campaignchain_campaign_scheduled_convert_tpl:
+    pattern:  /campaign/scheduled/convert/template/{id}
+    defaults: { _controller: CampaignChainCampaignScheduledCampaignBundle:ScheduledCampaign:convertTemplate }

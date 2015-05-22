@@ -303,4 +303,50 @@ class ScheduledCampaignController extends Controller
 
         return $campaign;
     }
+
+    public function convertTemplateAction(Request $request, $id)
+    {
+        $campaignService = $this->get('campaignchain.core.campaign');
+        $campaign = $campaignService->getCampaign($id);
+
+        $campaign->setName($campaign->getName().' (converted)');
+        $interval = $campaign->getStartDate()->diff($campaign->getEndDate());
+        $campaign->setStartDate(new \DateTime('now'));
+        $endDate = clone $campaign->getStartDate();
+        $campaign->setEndDate($endDate->add($interval));
+        $campaign->setHasRelativeDates(false);
+
+        $campaignType = $this->get('campaignchain.core.form.type.campaign');
+        $campaignType->setBundleName(self::BUNDLE_NAME);
+        $campaignType->setModuleIdentifier(self::MODULE_IDENTIFIER);
+        $campaignType->setView('convert_tpl');
+
+        $form = $this->createForm($campaignType, $campaign);
+
+        $form->handleRequest($request);
+
+        if ($form->isValid()) {
+            $repository = $this->getDoctrine()->getManager();
+
+            $hookService = $this->get('campaignchain.core.hook');
+            $campaign = $hookService->processHooks(self::BUNDLE_NAME, self::MODULE_IDENTIFIER, $campaign, $form);
+            $repository->persist($campaign);
+
+            $repository->flush();
+
+            $this->get('session')->getFlashBag()->add(
+                'success',
+                'Your campaign <a href="'.$this->generateUrl('campaignchain_core_campaign_edit', array('id' => $campaign->getId())).'">'.$campaign->getName().'</a> was edited successfully.'
+            );
+
+            return $this->redirect($this->generateUrl('campaignchain_core_campaign'));
+        }
+
+        return $this->render(
+            'CampaignChainCoreBundle:Base:new.html.twig',
+            array(
+                'page_title' => 'Convert Template to Scheduled Campaign',
+                'form' => $form->createView(),
+            ));
+    }
 }
