@@ -15,7 +15,7 @@
         "campaignchain/core": "dev-master",
         "campaignchain/hook-duration": "dev-master",
         "campaignchain/hook-assignee": "dev-master",
-        "myclabs/deep-copy": "~1.3.0"
+        "myclabs/deep-copy": "1.3.0"
     },
     "autoload": {
         "psr-4": { "CampaignChain\\Campaign\\ScheduledCampaignBundle\\": "" }
