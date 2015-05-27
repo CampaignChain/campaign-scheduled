@@ -178,118 +178,6 @@ class ScheduledCampaignController extends Controller
         return $response->setStatusCode(Response::HTTP_OK);
     }
 
-    public function moveApiAction(Request $request)
-    {
-        $encoders = array(new JsonEncoder());
-        $normalizers = array(new GetSetMethodNormalizer());
-        $serializer = new Serializer($normalizers, $encoders);
-
-        $responseData = array();
-
-        $id = $request->request->get('id');
-//        echo $request->request->get('start_date');
-        $newStartDate = new \DateTime($request->request->get('start_date'));
-        $newStartDate = DateTimeUtil::roundMinutes($newStartDate);
-
-        $repository = $this->getDoctrine()->getManager();
-
-        // Make sure that data stays intact by using transactions.
-        try {
-            $repository->getConnection()->beginTransaction();
-
-            $campaign = $this->getCampaign($id);
-            $responseData['campaign']['id'] = $campaign->getId();
-
-            $oldCampaignStartDate = clone $campaign->getStartDate();
-            $responseData['campaign']['old_start_date'] = $oldCampaignStartDate->format(\DateTime::ISO8601);
-            $responseData['campaign']['old_end_date'] = $campaign->getEndDate()->format(\DateTime::ISO8601);
-
-            // Calculate time difference.
-            $interval = $campaign->getStartDate()->diff($newStartDate);
-    //        $responseData['campaign']['interval']['object'] = json_encode($interval, true);
-    //        $responseData['campaign']['interval']['string'] = $interval->format(self::FORMAT_DATEINTERVAL);
-
-            // Set new start and end date for campaign.
-            $campaign->setStartDate(new \DateTime($campaign->getStartDate()->add($interval)->format(\DateTime::ISO8601)));
-            $campaign->setEndDate(new \DateTime($campaign->getEndDate()->add($interval)->format(\DateTime::ISO8601)));
-
-            $responseData['campaign']['new_start_date'] = $campaign->getStartDate()->format(\DateTime::ISO8601);
-            $responseData['campaign']['new_end_date'] = $campaign->getEndDate()->format(\DateTime::ISO8601);
-
-            // Change due date of all related milestones.
-            $milestones = $campaign->getMilestones();
-            if($milestones->count()){
-                foreach($milestones as $milestone){
-                    $oldMilestoneDate = clone $milestone->getDue();
-    //                $oldCampaignMilestoneInterval = $oldCampaignStartDate->diff($oldMilestoneDate);
-    //                echo 'OLD: Campaign <-> '.$milestone->getName().': '.$oldCampaignMilestoneInterval->format('Years: %Y, months: %m, days: %d, hours: %h, minutes: %i, seconds: %s').' ';
-                    $milestone->setDue(new \DateTime($milestone->getDue()->add($interval)->format(\DateTime::ISO8601)));
-                    $milestoneInterval = $oldMilestoneDate->diff($milestone->getDue());
-    //                $newCampaignMilestoneInterval = $campaign->getStartDate()->diff($milestone->getDue());
-    //                echo 'NEW: Campaign <-> '.$milestone->getName().': '.$newCampaignMilestoneInterval->format('Years: %Y, months: %m, days: %d, hours: %h, minutes: %i, seconds: %s').' ';
-    //                $responseData['milestones'][] = array(
-    //                    'id' => $milestone->getId(),
-    //                    'name' => $milestone->getName(),
-    //                    'old_due_date' => $oldMilestoneDate->format(\DateTime::ISO8601),
-    //                    'new_due_date' => $milestone->getDue()->format(\DateTime::ISO8601),
-    //                    'interval' => array(
-    //                        'object' => json_encode($milestoneInterval, true),
-    //                        'string' => $milestoneInterval->format(self::FORMAT_DATEINTERVAL),
-    //                    ),
-    //                );
-                    $campaign->addMilestone($milestone);
-                }
-            }
-
-            // Change due date of all related activities.
-            $activities = $campaign->getActivities();
-            if($activities->count()){
-                foreach($activities as $campaign){
-                    // Update the trigger hook.
-                    $hookService = $this->get($campaign->getTriggerHook()->getServices()['entity']);
-                    $hook = $hookService->getHook($campaign);
-
-    //                $oldHookStartDate = clone $hook->getStartDate();
-    //                $oldHookEndDate = clone $hook->getEndDate();
-                    $hook->setStartDate(new \DateTime($hook->getStartDate()->add($interval)->format(\DateTime::ISO8601)));
-                    // TODO: Do we have to define per trigger hook whether the end date should explicitly be set or can this be handled by the hook's entity class?
-                    //$hook->setEndDate(new \DateTime($hook->getEndDate()->add($interval)->format(\DateTime::ISO8601)));
-
-                    $repository->persist($hook);
-                    $repository->flush();
-
-//                    $activityInterval = $oldActivityDate->diff($activity->getDue());
-    //                $oldActivityDate = clone $activity->getDue();
-    //                $activity->setDue(new \DateTime($activity->getDue()->add($interval)->format(\DateTime::ISO8601)));
-    //                $activityInterval = $oldActivityDate->diff($activity->getDue());
-    //                $responseData['activities'][] = array(
-    //                    'id' => $activity->getId(),
-    //                    'name' => $activity->getName(),
-    //                    'old_due_date' => $oldMilestoneDate->format(\DateTime::ISO8601),
-    //                    'new_due_date' => $activity->getDue()->format(\DateTime::ISO8601),
-    //                    'interval' => array(
-    //                        'object' => json_encode($activityInterval, true),
-    //                        'string' => $activityInterval->format(self::FORMAT_DATEINTERVAL),
-    //                    ),
-    //                );
-                    $campaign->addActivity($activity);
-                }
-            }
-
-            $repository->persist($campaign);
-            $repository->flush();
-
-            $repository->getConnection()->commit();
-        } catch (\Exception $e) {
-            $repository->getConnection()->rollback();
-            // TODO: Don't throw an exception, instead respond with JSON and HTTP error code.
-            throw $e;
-        }
-
-        $response = new Response($serializer->serialize($responseData, 'json'));
-        return $response->setStatusCode(Response::HTTP_OK);
-    }
-
     public function getCampaign($id){
         $campaign = $this->getDoctrine()
             ->getRepository('CampaignChainCoreBundle:Campaign')
@@ -335,7 +223,9 @@ class ScheduledCampaignController extends Controller
 
         if ($form->isValid()) {
             // Clone the campaign template.
-            $clonedCampaign = $campaignService->cloneCampaign($campaignTemplate);
+            $clonedCampaign = $campaignService->cloneCampaign(
+                $campaignTemplate
+            );
 
             // Change module relationship of cloned campaign
             $moduleService = $this->get('campaignchain.core.module');
@@ -360,9 +250,10 @@ class ScheduledCampaignController extends Controller
 
             // Move the cloned campaign to the start date.
             $hookData = $form->get('campaignchain_hook_campaignchain_due')->getData();
-            $startDate = clone $hookData->getStartDate();
-            $endDate = clone $startDate;
-            $endDate->add($interval);
+            $clonedCampaign = $campaignService->moveCampaign(
+                $clonedCampaign, $hookData->getStartDate(),
+                Action::STATUS_OPEN
+            );
 
             $this->get('session')->getFlashBag()->add(
                 'success',
