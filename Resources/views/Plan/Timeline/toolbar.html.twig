@@ -1,0 +1,33 @@
+{#
+This file is part of the CampaignChain package.
+
+(c) Sandro Groganz <sandro@campaignchain.com>
+
+For the full copyright and license information, please view the LICENSE
+file that was distributed with this source code.
+#}
+
+        <div class="btn-toolbar" role="toolbar">
+            <div class="btn-group">
+                <button type="button" class="btn btn-default dropdown-toggle btn-sm" data-toggle="dropdown">
+                    <span class="fa fa-clock-o"></span> Time Scale <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu" role="menu">
+                    <li><a href="#" onclick="zoom_tasks('hours')">Hours</a></li>
+                    <li><a href="#" onclick="zoom_tasks('days')">Days</a></li>
+                    <li><a href="#" onclick="zoom_tasks('weeks')">Weeks</a></li>
+                    <li><a href="#" onclick="zoom_tasks('months')">Months</a></li>
+                </ul>
+            </div>
+            <div class="btn-group pull-right">
+                {% if gantt_toolbar_status != 'fullscreen' %}
+                    <a href="{{ path_fullscreen }}" class="btn btn-default btn-sm" role="button"><span class="fa fa-arrows-alt"></span></a>
+                {% endif %}
+            </div>
+        </div>
+
+        {% block javascripts %}
+            {% javascripts '@campaignchain_dhtmlxgantt_toolbar_relative_dates_js' combine=true %}
+            <!-- @campaignchain_dhtmlxgantt_toolbar_js --><script src="{{ asset_url }}"></script>
+            {% endjavascripts %}
+        {% endblock %}
