@@ -23,3 +23,5 @@ modules:
             convert_tpl:
                 campaignchain-due: true
                 campaignchain-assignee: true
+        conversions:
+            - campaignchain/campaign-template/campaignchain-template

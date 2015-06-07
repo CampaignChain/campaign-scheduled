@@ -14,7 +14,8 @@
     "require": {
         "campaignchain/core": "dev-master",
         "campaignchain/hook-duration": "dev-master",
-        "campaignchain/hook-assignee": "dev-master"
+        "campaignchain/hook-assignee": "dev-master",
+        "campaignchain/campaign-template": "dev-master"
     },
     "autoload": {
         "psr-4": { "CampaignChain\\Campaign\\ScheduledCampaignBundle\\": "" }
