@@ -117,10 +117,11 @@ class ScheduledCampaignController extends Controller
         }
 
         return $this->render(
-            'CampaignChainCoreBundle:Base:new.html.twig',
+            'CampaignChainCoreBundle:Campaign:edit.html.twig',
             array(
                 'page_title' => 'Edit Scheduled Campaign',
                 'form' => $form->createView(),
+                'campaign' => $campaign,
             ));
     }
 
@@ -193,81 +194,92 @@ class ScheduledCampaignController extends Controller
         return $campaign;
     }
 
-    public function convertTemplateAction(Request $request, $id)
+    public function convertAction(Request $request, $id)
     {
         $campaignService = $this->get('campaignchain.core.campaign');
-        $campaignTemplate = $campaignService->getCampaign($id);
+        $fromCampaign = $campaignService->getCampaign($id);
 
-        $convertedCampaign = clone $campaignTemplate;
+        $bundleName = $fromCampaign->getCampaignModule()->getBundle()->getName();
+        $moduleIdentifier = $fromCampaign->getCampaignModule()->getIdentifier();
+        $campaignURI = $bundleName.'/'.$moduleIdentifier;
 
-        $convertedCampaign->setName($campaignTemplate->getName().' (converted)');
-        $interval = $campaignTemplate->getStartDate()->diff($campaignTemplate->getEndDate());
-        $convertedCampaign->setStartDate(new \DateTime('now'));
+        switch($campaignURI){
+            case 'campaignchain/campaign-template/campaignchain-template':
 
-        $campaignType = $this->get('campaignchain.core.form.type.campaign');
-        $campaignType->setBundleName(self::BUNDLE_NAME);
-        $campaignType->setModuleIdentifier(self::MODULE_IDENTIFIER);
-        $campaignType->setView('convert_tpl');
-        $campaignType->setHooksOptions(
-            array(
-                'campaignchain-due' => array(
-                    'label' => 'Start Date',
-                    'help_text' => 'Ends after '.$interval->format("%a").' days.',
-                )
-            )
-        );
+                $campaignTemplate = $fromCampaign;
+                $convertedCampaign = clone $campaignTemplate;
 
-        $form = $this->createForm($campaignType, $convertedCampaign);
+                $convertedCampaign->setName($campaignTemplate->getName().' (converted)');
+                $interval = $campaignTemplate->getStartDate()->diff($campaignTemplate->getEndDate());
+                $convertedCampaign->setStartDate(new \DateTime('now'));
 
-        $form->handleRequest($request);
+                $campaignType = $this->get('campaignchain.core.form.type.campaign');
+                $campaignType->setBundleName(self::BUNDLE_NAME);
+                $campaignType->setModuleIdentifier(self::MODULE_IDENTIFIER);
+                $campaignType->setView('convert');
+                $campaignType->setHooksOptions(
+                    array(
+                        'campaignchain-due' => array(
+                            'label' => 'Start Date',
+                            'help_text' => 'Ends after '.$interval->format("%a").' days.',
+                        )
+                    )
+                );
 
-        if ($form->isValid()) {
-            // Clone the campaign template.
-            $clonedCampaign = $campaignService->cloneCampaign(
-                $campaignTemplate
-            );
+                $form = $this->createForm($campaignType, $convertedCampaign);
 
-            // Change module relationship of cloned campaign
-            $moduleService = $this->get('campaignchain.core.module');
-            $clonedCampaign->setCampaignModule(
-                $moduleService->getModule(
-                    Module::REPOSITORY_CAMPAIGN,
-                    self::BUNDLE_NAME,
-                    self::MODULE_IDENTIFIER
-                )
-            );
-            // Specify other parameters of converted campaign.
-            $clonedCampaign->setName($convertedCampaign->getName());
-            $clonedCampaign->setHasRelativeDates(false);
-            $clonedCampaign->setStatus(Action::STATUS_OPEN);
-            $hookService = $this->get('campaignchain.core.hook');
-            $clonedCampaign->setTriggerHook(
-                $hookService->getHook('campaignchain-duration')
-            );
+                $form->handleRequest($request);
 
-            $repository = $this->getDoctrine()->getManager();
-            $repository->flush();
+                if ($form->isValid()) {
+                    // Clone the campaign template.
+                    $clonedCampaign = $campaignService->cloneCampaign(
+                        $campaignTemplate
+                    );
 
-            // Move the cloned campaign to the start date.
-            $hookData = $form->get('campaignchain_hook_campaignchain_due')->getData();
-            $clonedCampaign = $campaignService->moveCampaign(
-                $clonedCampaign, $hookData->getStartDate(),
-                Action::STATUS_OPEN
-            );
+                    // Change module relationship of cloned campaign
+                    $moduleService = $this->get('campaignchain.core.module');
+                    $clonedCampaign->setCampaignModule(
+                        $moduleService->getModule(
+                            Module::REPOSITORY_CAMPAIGN,
+                            self::BUNDLE_NAME,
+                            self::MODULE_IDENTIFIER
+                        )
+                    );
+                    // Specify other parameters of converted campaign.
+                    $clonedCampaign->setName($convertedCampaign->getName());
+                    $clonedCampaign->setHasRelativeDates(false);
+                    $clonedCampaign->setStatus(Action::STATUS_OPEN);
+                    $hookService = $this->get('campaignchain.core.hook');
+                    $clonedCampaign->setTriggerHook(
+                        $hookService->getHook('campaignchain-duration')
+                    );
 
-            $this->get('session')->getFlashBag()->add(
-                'success',
-                'Your campaign <a href="'.$this->generateUrl('campaignchain_core_campaign_edit', array('id' => $clonedCampaign->getId())).'">'.$clonedCampaign->getName().'</a> was created successfully.'
-            );
+                    $repository = $this->getDoctrine()->getManager();
+                    $repository->flush();
 
-            return $this->redirect($this->generateUrl('campaignchain_core_campaign'));
+                    // Move the cloned campaign to the start date.
+                    $hookData = $form->get('campaignchain_hook_campaignchain_due')->getData();
+                    $clonedCampaign = $campaignService->moveCampaign(
+                        $clonedCampaign, $hookData->getStartDate(),
+                        Action::STATUS_OPEN
+                    );
+
+                    $this->get('session')->getFlashBag()->add(
+                        'success',
+                        'Your campaign <a href="'.$this->generateUrl('campaignchain_core_campaign_edit', array('id' => $clonedCampaign->getId())).'">'.$clonedCampaign->getName().'</a> was created successfully.'
+                    );
+
+                    return $this->redirect($this->generateUrl('campaignchain_core_campaign'));
+                }
+
+                return $this->render(
+                    'CampaignChainCoreBundle:Base:new.html.twig',
+                    array(
+                        'page_title' => 'Convert Template to Scheduled Campaign',
+                        'form' => $form->createView(),
+                    ));
+
+                break;
         }
-
-        return $this->render(
-            'CampaignChainCoreBundle:Base:new.html.twig',
-            array(
-                'page_title' => 'Convert Template to Scheduled Campaign',
-                'form' => $form->createView(),
-            ));
     }
 }

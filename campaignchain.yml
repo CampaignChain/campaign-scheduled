@@ -15,12 +15,12 @@ modules:
             edit_api: campaignchain_campaign_scheduled_edit_api
             plan: campaignchain_campaign_scheduled_plan_timeline
             plan_detail: campaignchain_campaign_scheduled_plan_timeline_detail
-            convert_tpl: campaignchain_campaign_scheduled_convert_tpl
+            convert: campaignchain_campaign_scheduled_convert
         hooks:
             default:
                 campaignchain-duration: true
                 campaignchain-assignee: true
-            convert_tpl:
+            convert:
                 campaignchain-due: true
                 campaignchain-assignee: true
         conversions:
