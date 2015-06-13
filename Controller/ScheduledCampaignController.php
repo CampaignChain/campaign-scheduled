@@ -198,10 +198,7 @@ class ScheduledCampaignController extends Controller
     {
         $campaignService = $this->get('campaignchain.core.campaign');
         $fromCampaign = $campaignService->getCampaign($id);
-
-        $bundleName = $fromCampaign->getCampaignModule()->getBundle()->getName();
-        $moduleIdentifier = $fromCampaign->getCampaignModule()->getIdentifier();
-        $campaignURI = $bundleName.'/'.$moduleIdentifier;
+        $campaignURI = $campaignService->getCampaignURI($fromCampaign);
 
         switch($campaignURI){
             case 'campaignchain/campaign-template/campaignchain-template':
@@ -266,7 +263,7 @@ class ScheduledCampaignController extends Controller
 
                     $this->get('session')->getFlashBag()->add(
                         'success',
-                        'Your campaign <a href="'.$this->generateUrl('campaignchain_core_campaign_edit', array('id' => $clonedCampaign->getId())).'">'.$clonedCampaign->getName().'</a> was created successfully.'
+                        'The scheduled campaign <a href="'.$this->generateUrl('campaignchain_core_campaign_edit', array('id' => $clonedCampaign->getId())).'">'.$clonedCampaign->getName().'</a> was created successfully.'
                     );
 
                     return $this->redirect($this->generateUrl('campaignchain_core_campaign'));
