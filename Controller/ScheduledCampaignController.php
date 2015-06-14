@@ -140,10 +140,12 @@ class ScheduledCampaignController extends Controller
         $form = $this->createForm($campaignType, $campaign);
 
         return $this->render(
-            'CampaignChainCoreBundle:Base:new_modal.html.twig',
+            'CampaignChainCoreBundle:Campaign:edit_modal.html.twig',
             array(
                 'page_title' => 'Edit Scheduled Campaign',
                 'form' => $form->createView(),
+                'campaign' => $campaign,
+                'form_submit_label' => 'Save',
             ));
     }
 
@@ -177,21 +179,6 @@ class ScheduledCampaignController extends Controller
 
         $response = new Response($serializer->serialize($responseData, 'json'));
         return $response->setStatusCode(Response::HTTP_OK);
-    }
-
-    public function getCampaign($id){
-        $campaign = $this->getDoctrine()
-            ->getRepository('CampaignChainCoreBundle:Campaign')
-            ->find($id);
-
-        if (!$campaign) {
-            // TODO: Make sure we return this error as a response if it is an API call.
-            throw new \Exception(
-                'No product found for id '.$id
-            );
-        }
-
-        return $campaign;
     }
 
     public function convertAction(Request $request, $id)
