@@ -76,11 +76,36 @@ class PlanController extends Controller
                         self::BUNDLE_NAME, self::MODULE_IDENTIFIER, $id
                     ),
                 'gantt_toolbar_status' => 'default',
-                'path_embedded' => '',
-                'path_fullscreen' =>  '',
+                'path_embedded' => $this->generateUrl('campaignchain_campaign_scheduled_plan_timeline_detail', array('id' => $id)),
+                'path_fullscreen' =>  $this->generateUrl('campaignchain_campaign_scheduled_plan_timeline_detail_fullscreen', array('id' => $id)),
                 'path_list_all' => $this->generateUrl('campaignchain_campaign_scheduled_plan_timeline'),
                 'scale_start_date' => $campaign->getStartDate()->format(\DateTime::ISO8601),
                 'scale_end_date' => $campaign->getEndDate()->format(\DateTime::ISO8601),
+                'campaign' => $campaign,
+            ));
+    }
+
+    public function timelineDetailFullScreenAction(Request $request, $id){
+        /*
+         * Set current campaign in session, e.g. to pre-fill the campaign field
+         * in a new activity with it.
+         */
+        $this->get('session')->set('campaignchain.campaign', $id);
+
+        $campaignService = $this->get('campaignchain.core.campaign');
+        $campaign = $campaignService->getCampaign($id);
+
+        return $this->render(
+            'CampaignChainCampaignScheduledCampaignBundle:Plan/Timeline:fullscreen.html.twig',
+            array(
+                'page_title' => 'Plan Scheduled Campaign',
+                'page_secondary_title' => $campaign->getName(),
+                'gantt_tasks' => $this->get('campaignchain.core.model.dhtmlxgantt')->getTasks(
+                        self::BUNDLE_NAME, self::MODULE_IDENTIFIER, $id
+                    ),
+                'gantt_toolbar_status' => 'fullscreen',
+                'path_fullscreen_close' => $this->generateUrl('campaignchain_campaign_scheduled_plan_timeline_detail', array('id' => $id)),
+                'path_fullscreen' =>  $this->generateUrl('campaignchain_campaign_scheduled_plan_timeline_detail_fullscreen', array('id' => $id)),
                 'campaign' => $campaign,
             ));
     }
