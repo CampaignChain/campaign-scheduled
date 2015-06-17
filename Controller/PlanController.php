@@ -78,6 +78,7 @@ class PlanController extends Controller
                 'gantt_toolbar_status' => 'default',
                 'path_embedded' => '',
                 'path_fullscreen' =>  '',
+                'path_list_all' => $this->generateUrl('campaignchain_campaign_scheduled_plan_timeline'),
                 'scale_start_date' => $campaign->getStartDate()->format(\DateTime::ISO8601),
                 'scale_end_date' => $campaign->getEndDate()->format(\DateTime::ISO8601),
                 'campaign' => $campaign,
