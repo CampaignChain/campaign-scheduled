@@ -78,7 +78,6 @@ class PlanController extends Controller
                 'gantt_toolbar_status' => 'default',
                 'path_embedded' => $this->generateUrl('campaignchain_campaign_scheduled_plan_timeline_detail', array('id' => $id)),
                 'path_fullscreen' =>  $this->generateUrl('campaignchain_campaign_scheduled_plan_timeline_detail_fullscreen', array('id' => $id)),
-                'path_list_all' => $this->generateUrl('campaignchain_campaign_scheduled_plan_timeline'),
                 'scale_start_date' => $campaign->getStartDate()->format(\DateTime::ISO8601),
                 'scale_end_date' => $campaign->getEndDate()->format(\DateTime::ISO8601),
                 'campaign' => $campaign,
@@ -106,7 +105,6 @@ class PlanController extends Controller
                 'gantt_toolbar_status' => 'fullscreen',
                 'path_fullscreen_close' => $this->generateUrl('campaignchain_campaign_scheduled_plan_timeline_detail', array('id' => $id)),
                 'path_fullscreen' =>  $this->generateUrl('campaignchain_campaign_scheduled_plan_timeline_detail_fullscreen', array('id' => $id)),
-                'path_list_all' => $this->generateUrl('campaignchain_campaign_scheduled_plan_timeline'),
                 'campaign' => $campaign,
             ));
     }
