@@ -32,6 +32,12 @@ class Builder extends ContainerAware
         $menu = $factory->createItem('root');
 
         $menu->addChild(
+            'List',
+            array(
+                'route' => 'campaignchain_campaign_scheduled_plan_timeline'
+            )
+        );
+        $menu->addChild(
             'Edit',
             array(
                 'route' => 'campaignchain_campaign_scheduled_edit',
