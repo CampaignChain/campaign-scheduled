@@ -24,4 +24,32 @@ class Builder extends ContainerAware
 
         return $menu;
     }
+
+    public function detailsTab(FactoryInterface $factory, array $options)
+    {
+        $id = $this->container->get('request')->get('id');
+
+        $menu = $factory->createItem('root');
+
+        $menu->addChild(
+            'Edit',
+            array(
+                'route' => 'campaignchain_campaign_scheduled_edit',
+                'routeParameters' => array(
+                    'id' => $id
+                )
+            )
+        );
+        $menu->addChild(
+            'Timeline',
+            array(
+                'route' => 'campaignchain_campaign_scheduled_plan_timeline_detail',
+                'routeParameters' => array(
+                    'id' => $id
+                )
+            )
+        );
+
+        return $menu;
+    }
 }

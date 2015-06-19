@@ -28,6 +28,10 @@ file that was distributed with this source code.
     {% endstylesheets %}
 {% endblock %}
 
+{% block bodytabs %}
+    {{ knp_menu_render('CampaignChainCampaignScheduledCampaignBundle:Builder:detailsTab', { 'style': 'tabs' }) }}
+{% endblock %}
+
 {% block body %}
     {% set gantt_toolbar_status = 'inline' %}
     <script type="text/javascript">

@@ -117,9 +117,10 @@ class ScheduledCampaignController extends Controller
         }
 
         return $this->render(
-            'CampaignChainCoreBundle:Campaign:edit.html.twig',
+            'CampaignChainCampaignScheduledCampaignBundle::edit.html.twig',
             array(
                 'page_title' => 'Edit Scheduled Campaign',
+                'page_secondary_title' => $campaign->getName(),
                 'form' => $form->createView(),
                 'campaign' => $campaign,
             ));
