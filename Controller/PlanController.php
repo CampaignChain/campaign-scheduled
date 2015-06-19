@@ -96,7 +96,7 @@ class PlanController extends Controller
         $campaign = $campaignService->getCampaign($id);
 
         return $this->render(
-            'CampaignChainCampaignScheduledCampaignBundle:Plan/Timeline:fullscreen.html.twig',
+            'CampaignChainCampaignScheduledCampaignBundle:Plan/Timeline:detail_fullscreen.html.twig',
             array(
                 'page_title' => 'Plan Scheduled Campaign',
                 'page_secondary_title' => $campaign->getName(),
