@@ -310,7 +310,6 @@ class ScheduledCampaignController extends Controller
                             $hookService->getHook('campaignchain-duration')
                         );
 
-                        $repository = $this->getDoctrine()->getManager();
                         $repository->flush();
 
                         // Move the cloned campaign to the start date.
