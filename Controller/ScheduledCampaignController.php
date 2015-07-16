@@ -213,38 +213,20 @@ class ScheduledCampaignController extends Controller
                 $form->handleRequest($request);
 
                 if ($form->isValid()) {
-                    $repository = $this->getDoctrine()->getManager();
+                    $copyService = $this->get('campaignchain.campaign.scheduled.copy');
+                    $hookData = $form->get('campaignchain_hook_campaignchain_due')->getData();
+                    $clonedCampaign = $copyService->scheduled2Scheduled(
+                        $fromCampaign, $hookData->getStartDate(),
+                        Action::STATUS_OPEN, $toCampaign->getName()
+                    );
 
-                    try {
-                        $repository->getConnection()->beginTransaction();
+                    $this->get('session')->getFlashBag()->add(
+                        'success',
+                        'Your scheduled campaign <a href="'.$this->generateUrl('campaignchain_core_campaign_edit', array('id' => $clonedCampaign->getId())).'">'.$clonedCampaign->getName().'</a> was copied successfully.'
+                    );
 
-                        // Clone the campaign template.
-                        $clonedCampaign = $campaignService->cloneCampaign(
-                            $fromCampaign
-                        );
-                        $clonedCampaign->setName($toCampaign->getName());
 
-                        $repository->flush();
-
-                        // Move the cloned campaign to the start date.
-                        $hookData = $form->get('campaignchain_hook_campaignchain_due')->getData();
-                        $clonedCampaign = $campaignService->moveCampaign(
-                            $clonedCampaign, $hookData->getStartDate(),
-                            Action::STATUS_OPEN
-                        );
-
-                        $this->get('session')->getFlashBag()->add(
-                            'success',
-                            'Your scheduled campaign <a href="'.$this->generateUrl('campaignchain_core_campaign_edit', array('id' => $clonedCampaign->getId())).'">'.$clonedCampaign->getName().'</a> was copied successfully.'
-                        );
-
-                        $repository->getConnection()->commit();
-
-                        return $this->redirect($this->generateUrl('campaignchain_core_campaign'));
-                    } catch (\Exception $e) {
-                        $repository->getConnection()->rollback();
-                        throw $e;
-                    }
+                    return $this->redirect($this->generateUrl('campaignchain_core_campaign'));
                 }
 
                 return $this->render(
@@ -282,55 +264,19 @@ class ScheduledCampaignController extends Controller
                 $form->handleRequest($request);
 
                 if ($form->isValid()) {
-                    $repository = $this->getDoctrine()->getManager();
+                    $copyService = $this->get('campaignchain.campaign.scheduled.copy');
+                    $hookData = $form->get('campaignchain_hook_campaignchain_due')->getData();
+                    $clonedCampaign = $copyService->template2Scheduled(
+                        $fromCampaign, $hookData->getStartDate(),
+                        Action::STATUS_OPEN, $copiedCampaign->getName()
+                    );
 
-                    try {
-                        $repository->getConnection()->beginTransaction();
+                    $this->get('session')->getFlashBag()->add(
+                        'success',
+                        'The scheduled campaign <a href="'.$this->generateUrl('campaignchain_core_campaign_edit', array('id' => $clonedCampaign->getId())).'">'.$clonedCampaign->getName().'</a> was copied successfully.'
+                    );
 
-                        // Clone the campaign template.
-                        $clonedCampaign = $campaignService->cloneCampaign(
-                            $campaignTemplate
-                        );
-
-                        // Change module relationship of cloned campaign
-                        $moduleService = $this->get('campaignchain.core.module');
-                        $clonedCampaign->setCampaignModule(
-                            $moduleService->getModule(
-                                Module::REPOSITORY_CAMPAIGN,
-                                self::BUNDLE_NAME,
-                                self::MODULE_IDENTIFIER
-                            )
-                        );
-                        // Specify other parameters of copied campaign.
-                        $clonedCampaign->setName($copiedCampaign->getName());
-                        $clonedCampaign->setHasRelativeDates(false);
-                        $clonedCampaign->setStatus(Action::STATUS_OPEN);
-                        $hookService = $this->get('campaignchain.core.hook');
-                        $clonedCampaign->setTriggerHook(
-                            $hookService->getHook('campaignchain-duration')
-                        );
-
-                        $repository->flush();
-
-                        // Move the cloned campaign to the start date.
-                        $hookData = $form->get('campaignchain_hook_campaignchain_due')->getData();
-                        $clonedCampaign = $campaignService->moveCampaign(
-                            $clonedCampaign, $hookData->getStartDate(),
-                            Action::STATUS_OPEN
-                        );
-
-                        $this->get('session')->getFlashBag()->add(
-                            'success',
-                            'The scheduled campaign <a href="'.$this->generateUrl('campaignchain_core_campaign_edit', array('id' => $clonedCampaign->getId())).'">'.$clonedCampaign->getName().'</a> was copied successfully.'
-                        );
-
-                        $repository->getConnection()->commit();
-
-                        return $this->redirect($this->generateUrl('campaignchain_core_campaign'));
-                    } catch (\Exception $e) {
-                        $repository->getConnection()->rollback();
-                        throw $e;
-                    }
+                    return $this->redirect($this->generateUrl('campaignchain_core_campaign'));
                 }
 
                 return $this->render(

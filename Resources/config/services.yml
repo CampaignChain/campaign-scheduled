@@ -5,6 +5,7 @@
 # For the full copyright and license information, please view the LICENSE
 # file that was distributed with this source code.
 
-parameters:
-
 services:
+    campaignchain.campaign.scheduled.copy:
+        class: CampaignChain\Campaign\ScheduledCampaignBundle\EntityService\CopyService
+        arguments: [ @doctrine.orm.entity_manager, @service_container ]
