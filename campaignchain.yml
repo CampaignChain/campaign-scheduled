@@ -8,6 +8,7 @@
 modules:
     campaignchain-scheduled:
         display_name: 'Scheduled Campaign'
+        description: A campaign with a start and end date.
         routes:
             new: campaignchain_campaign_scheduled_new
             edit: campaignchain_campaign_scheduled_edit
