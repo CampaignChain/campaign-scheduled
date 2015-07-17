@@ -240,11 +240,11 @@ class ScheduledCampaignController extends Controller
             case 'campaignchain/campaign-template/campaignchain-template':
 
                 $campaignTemplate = $fromCampaign;
-                $copiedCampaign = clone $campaignTemplate;
+                $scheduledCampaignForm = clone $campaignTemplate;
 
-                $copiedCampaign->setName($campaignTemplate->getName().' (copied)');
+                $scheduledCampaignForm->setName($campaignTemplate->getName().' (copied)');
                 $interval = $campaignTemplate->getStartDate()->diff($campaignTemplate->getEndDate());
-                $copiedCampaign->setStartDate(new \DateTime('now'));
+                $scheduledCampaignForm->setStartDate(new \DateTime('now'));
 
                 $campaignType = $this->get('campaignchain.core.form.type.campaign');
                 $campaignType->setBundleName(self::BUNDLE_NAME);
@@ -259,7 +259,7 @@ class ScheduledCampaignController extends Controller
                     )
                 );
 
-                $form = $this->createForm($campaignType, $copiedCampaign);
+                $form = $this->createForm($campaignType, $scheduledCampaignForm);
 
                 $form->handleRequest($request);
 
@@ -267,8 +267,8 @@ class ScheduledCampaignController extends Controller
                     $copyService = $this->get('campaignchain.campaign.scheduled.copy');
                     $hookData = $form->get('campaignchain_hook_campaignchain_due')->getData();
                     $clonedCampaign = $copyService->template2Scheduled(
-                        $fromCampaign, $hookData->getStartDate(),
-                        Action::STATUS_OPEN, $copiedCampaign->getName()
+                        $campaignTemplate, $hookData->getStartDate(),
+                        Action::STATUS_OPEN, $scheduledCampaignForm->getName()
                     );
 
                     $this->get('session')->getFlashBag()->add(
@@ -286,6 +286,54 @@ class ScheduledCampaignController extends Controller
                         'form' => $form->createView(),
                     ));
 
+                break;
+            case 'campaignchain/campaign-repeating/campaignchain-repeating':
+                $repeatingCampaign = $fromCampaign;
+                $scheduledCampaignForm = clone $repeatingCampaign;
+
+                $scheduledCampaignForm->setName($repeatingCampaign->getName().' (copied)');
+                $interval = $repeatingCampaign->getStartDate()->diff($repeatingCampaign->getEndDate());
+                $scheduledCampaignForm->setStartDate(new \DateTime('now'));
+
+                $campaignType = $this->get('campaignchain.core.form.type.campaign');
+                $campaignType->setBundleName(self::BUNDLE_NAME);
+                $campaignType->setModuleIdentifier(self::MODULE_IDENTIFIER);
+                $campaignType->setView('copy');
+                $campaignType->setHooksOptions(
+                    array(
+                        'campaignchain-due' => array(
+                            'label' => 'Start Date',
+                            'help_text' => 'Ends after '.$interval->format("%a").' days.',
+                        )
+                    )
+                );
+
+                $form = $this->createForm($campaignType, $scheduledCampaignForm);
+
+                $form->handleRequest($request);
+
+                if ($form->isValid()) {
+                    $copyService = $this->container->get('campaignchain.campaign.repeating.copy');
+                    $hookData = $form->get('campaignchain_hook_campaignchain_due')->getData();
+                    $clonedCampaign = $copyService->repeating2Scheduled(
+                        $repeatingCampaign, $hookData->getStartDate(),
+                        Action::STATUS_OPEN, $scheduledCampaignForm->getName()
+                    );
+
+                    $this->get('session')->getFlashBag()->add(
+                        'success',
+                        'The scheduled campaign <a href="'.$this->generateUrl('campaignchain_core_campaign_edit', array('id' => $clonedCampaign->getId())).'">'.$clonedCampaign->getName().'</a> was copied successfully.'
+                    );
+
+                    return $this->redirect($this->generateUrl('campaignchain_core_campaign'));
+                }
+
+                return $this->render(
+                    'CampaignChainCoreBundle:Base:new.html.twig',
+                    array(
+                        'page_title' => 'Copy Repeating Campaign as Scheduled Campaign',
+                        'form' => $form->createView(),
+                    ));
                 break;
         }
     }

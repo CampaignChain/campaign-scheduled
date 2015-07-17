@@ -23,11 +23,13 @@ class CopyService
 
     protected $em;
     protected $container;
+    protected $logger;
 
     public function __construct(EntityManager $em, ContainerInterface $container)
     {
         $this->em = $em;
         $this->container = $container;
+        $this->logger = $this->container->get('logger');
     }
 
     public function scheduled2Scheduled(Campaign $scheduledCampaign, \DateTime $startDate, $status = null, $name = null)
@@ -111,5 +113,10 @@ class CopyService
             $this->em->getConnection()->rollback();
             throw $e;
         }
+    }
+
+    public function repeating2Scheduled(Campaign $campaignTemplate, \DateTime $startDate, $status = null, $name = null)
+    {
+
     }
 }

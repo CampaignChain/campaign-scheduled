@@ -26,4 +26,5 @@ modules:
                 campaignchain-assignee: true
         conversions:
             - campaignchain/campaign-scheduled/campaignchain-scheduled
+            - campaignchain/campaign-repeating/campaignchain-repeating
             - campaignchain/campaign-template/campaignchain-template
