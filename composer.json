@@ -1,7 +1,7 @@
 {
     "name": "campaignchain/campaign-scheduled",
     "description": "A campaign with a start and end date.",
-    "keywords": ["campaign","scheduled"],
+    "keywords": ["campaign","scheduled","campaignchain"],
     "type": "campaignchain-campaign",
     "homepage": "http://www.campaignchain.com",
     "license": "Apache-2.0",
