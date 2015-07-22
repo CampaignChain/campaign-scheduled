@@ -8,7 +8,7 @@
 modules:
     campaignchain-scheduled:
         display_name: 'Scheduled Campaign'
-        description: A campaign with a start and end date.
+        description: A campaign with a start and end date. All related Activities and Milestones will be executed and related metrics collected while the Scheduled Campaign runs.
         routes:
             new: campaignchain_campaign_scheduled_new
             edit: campaignchain_campaign_scheduled_edit
