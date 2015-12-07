@@ -29,6 +29,7 @@ class PlanController extends Controller
                 'gantt_toolbar_status' => 'default',
                 'path_embedded' => $this->generateUrl('campaignchain_campaign_scheduled_plan_timeline'),
                 'path_fullscreen' =>  $this->generateUrl('campaignchain_campaign_scheduled_plan_timeline_fullscreen'),
+                'gantt_toolbar_timescale_hours' => false,
             ));
     }
 
@@ -43,6 +44,7 @@ class PlanController extends Controller
                 'gantt_toolbar_status' => 'fullscreen',
                 'path_fullscreen_close' => $this->generateUrl('campaignchain_campaign_scheduled_plan_timeline'),
                 'path_fullscreen' =>  $this->generateUrl('campaignchain_campaign_scheduled_plan_timeline_fullscreen'),
+                'gantt_toolbar_timescale_hours' => false,
             ));
     }
 
