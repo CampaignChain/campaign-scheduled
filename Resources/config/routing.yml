@@ -46,3 +46,8 @@ campaignchain_campaign_scheduled_edit_api:
 campaignchain_campaign_scheduled_copy:
     pattern:  /campaign/scheduled/copy/{id}
     defaults: { _controller: CampaignChainCampaignScheduledCampaignBundle:ScheduledCampaign:copy }
+
+# REST routes are being created automatically via FOSRestBundle.
+campaignchain_campaign_scheduled_rest:
+    resource: "@CampaignChainCampaignScheduledCampaignBundle/Resources/config/routing_rest.yml"
+    prefix: /api/v1/p/campaignchain/campaign-scheduled
