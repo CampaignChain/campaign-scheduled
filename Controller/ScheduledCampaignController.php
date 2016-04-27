@@ -10,16 +10,11 @@
 
 namespace CampaignChain\Campaign\ScheduledCampaignBundle\Controller;
 
-use CampaignChain\CoreBundle\Util\DateTimeUtil;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use CampaignChain\CoreBundle\Entity\Campaign;
-use CampaignChain\CoreBundle\Entity\Module;
 use CampaignChain\CoreBundle\Entity\Action;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Serializer\Serializer;
-use Symfony\Component\Serializer\Encoder\JsonEncoder;
-use Symfony\Component\Serializer\Normalizer\GetSetMethodNormalizer;
 
 class ScheduledCampaignController extends Controller
 {
@@ -37,43 +32,41 @@ class ScheduledCampaignController extends Controller
         $campaign->setStartDate($now);
         $campaign->setEndDate($now->modify('+1 day'));
 
-        $campaignType = $this->get('campaignchain.core.form.type.campaign');
-        $campaignType->setBundleName(self::BUNDLE_NAME);
-        $campaignType->setModuleIdentifier(self::MODULE_IDENTIFIER);
+        $campaignType = $this->getCampaignType();
 
         $form = $this->createForm($campaignType, $campaign);
 
         $form->handleRequest($request);
 
         if ($form->isValid()) {
-            $repository = $this->getDoctrine()->getManager();
+            $em = $this->getDoctrine()->getManager();
 
             // Make sure that data stays intact by using transactions.
             try {
-                $repository->getConnection()->beginTransaction();
+                $em->getConnection()->beginTransaction();
 
-                $repository->persist($campaign);
+                $em->persist($campaign);
 
                 // We need the campaign ID for storing the hooks. Hence we must flush here.
-                $repository->flush();
+                $em->flush();
 
                 $hookService = $this->get('campaignchain.core.hook');
                 $campaign = $hookService->processHooks(self::BUNDLE_NAME, self::MODULE_IDENTIFIER, $campaign, $form, true);
 
-                $repository->flush();
+                $em->flush();
 
-                $repository->getConnection()->commit();
+                $em->getConnection()->commit();
             } catch (\Exception $e) {
-                $repository->getConnection()->rollback();
+                $em->getConnection()->rollback();
                 throw $e;
             }
 
-            $this->get('session')->getFlashBag()->add(
+            $this->addFlash(
                 'success',
                 'Your new campaign <a href="'.$this->generateUrl('campaignchain_core_campaign_edit', array('id' => $campaign->getId())).'">'.$campaign->getName().'</a> was created successfully.'
             );
 
-            return $this->redirect($this->generateUrl('campaignchain_core_campaign'));
+            return $this->redirectToRoute('campaignchain_core_campaign');
         }
 
         return $this->render(
@@ -91,29 +84,27 @@ class ScheduledCampaignController extends Controller
         $campaignService = $this->get('campaignchain.core.campaign');
         $campaign = $campaignService->getCampaign($id);
 
-        $campaignType = $this->get('campaignchain.core.form.type.campaign');
-        $campaignType->setBundleName(self::BUNDLE_NAME);
-        $campaignType->setModuleIdentifier(self::MODULE_IDENTIFIER);
+        $campaignType = $this->getCampaignType();
 
         $form = $this->createForm($campaignType, $campaign);
 
         $form->handleRequest($request);
 
         if ($form->isValid()) {
-            $repository = $this->getDoctrine()->getManager();
+            $em = $this->getDoctrine()->getManager();
 
             $hookService = $this->get('campaignchain.core.hook');
             $campaign = $hookService->processHooks(self::BUNDLE_NAME, self::MODULE_IDENTIFIER, $campaign, $form);
-            $repository->persist($campaign);
+            $em->persist($campaign);
 
-            $repository->flush();
+            $em->flush();
 
-            $this->get('session')->getFlashBag()->add(
+            $this->addFlash(
                 'success',
                 'Your campaign <a href="'.$this->generateUrl('campaignchain_core_campaign_edit', array('id' => $campaign->getId())).'">'.$campaign->getName().'</a> was edited successfully.'
             );
 
-            return $this->redirect($this->generateUrl('campaignchain_core_campaign'));
+            return $this->redirectToRoute('campaignchain_core_campaign');
         }
 
         return $this->render(
@@ -133,9 +124,7 @@ class ScheduledCampaignController extends Controller
         $campaignService = $this->get('campaignchain.core.campaign');
         $campaign = $campaignService->getCampaign($id);
 
-        $campaignType = $this->get('campaignchain.core.form.type.campaign');
-        $campaignType->setBundleName(self::BUNDLE_NAME);
-        $campaignType->setModuleIdentifier(self::MODULE_IDENTIFIER);
+        $campaignType = $this->getCampaignType();
         $campaignType->setView('default');
 
         $form = $this->createForm($campaignType, $campaign);
@@ -163,23 +152,20 @@ class ScheduledCampaignController extends Controller
         $campaign->setName($data['name']);
         $campaign->setTimezone($data['timezone']);
 
-        $repository = $this->getDoctrine()->getManager();
-        $repository->persist($campaign);
+        $em = $this->getDoctrine()->getManager();
+        $em->persist($campaign);
 
         $hookService = $this->get('campaignchain.core.hook');
         $hookService->processHooks(self::BUNDLE_NAME, self::MODULE_IDENTIFIER, $campaign, $data);
 
-        $repository->flush();
+        $em->flush();
 
         $responseData['start_date'] = $campaign->getStartDate()->format(\DateTime::ISO8601);
         $responseData['end_date'] = $campaign->getEndDate()->format(\DateTime::ISO8601);
 
-        $encoders = array(new JsonEncoder());
-        $normalizers = array(new GetSetMethodNormalizer());
-        $serializer = new Serializer($normalizers, $encoders);
+        $serializer = $this->get('campaignchain.core.serializer.default');
 
-        $response = new Response($serializer->serialize($responseData, 'json'));
-        return $response->setStatusCode(Response::HTTP_OK);
+        return new Response($serializer->serialize($responseData, 'json'));
     }
 
     public function copyAction(Request $request, $id)
@@ -195,9 +181,7 @@ class ScheduledCampaignController extends Controller
                 $interval = $toCampaign->getStartDate()->diff($toCampaign->getEndDate());
                 $toCampaign->setStartDate(new \DateTime('now'));
 
-                $campaignType = $this->get('campaignchain.core.form.type.campaign');
-                $campaignType->setBundleName(self::BUNDLE_NAME);
-                $campaignType->setModuleIdentifier(self::MODULE_IDENTIFIER);
+                $campaignType = $this->getCampaignType();
                 $campaignType->setView('copy');
                 $campaignType->setHooksOptions(
                     array(
@@ -220,13 +204,12 @@ class ScheduledCampaignController extends Controller
                         Action::STATUS_OPEN, $toCampaign->getName()
                     );
 
-                    $this->get('session')->getFlashBag()->add(
+                    $this->addFlash(
                         'success',
                         'Your scheduled campaign <a href="'.$this->generateUrl('campaignchain_core_campaign_edit', array('id' => $clonedCampaign->getId())).'">'.$clonedCampaign->getName().'</a> was copied successfully.'
                     );
 
-
-                    return $this->redirect($this->generateUrl('campaignchain_core_campaign'));
+                    return $this->redirectToRoute('campaignchain_core_campaign');
                 }
 
                 return $this->render(
@@ -246,9 +229,7 @@ class ScheduledCampaignController extends Controller
                 $interval = $campaignTemplate->getStartDate()->diff($campaignTemplate->getEndDate());
                 $scheduledCampaignForm->setStartDate(new \DateTime('now'));
 
-                $campaignType = $this->get('campaignchain.core.form.type.campaign');
-                $campaignType->setBundleName(self::BUNDLE_NAME);
-                $campaignType->setModuleIdentifier(self::MODULE_IDENTIFIER);
+                $campaignType = $this->getCampaignType();
                 $campaignType->setView('copy');
                 $campaignType->setHooksOptions(
                     array(
@@ -271,12 +252,12 @@ class ScheduledCampaignController extends Controller
                         Action::STATUS_OPEN, $scheduledCampaignForm->getName()
                     );
 
-                    $this->get('session')->getFlashBag()->add(
+                    $this->addFlash(
                         'success',
                         'The scheduled campaign <a href="'.$this->generateUrl('campaignchain_core_campaign_edit', array('id' => $clonedCampaign->getId())).'">'.$clonedCampaign->getName().'</a> was copied successfully.'
                     );
 
-                    return $this->redirect($this->generateUrl('campaignchain_core_campaign'));
+                    return $this->redirectToRoute('campaignchain_core_campaign');
                 }
 
                 return $this->render(
@@ -295,9 +276,7 @@ class ScheduledCampaignController extends Controller
                 $interval = $repeatingCampaign->getStartDate()->diff($repeatingCampaign->getEndDate());
                 $scheduledCampaignForm->setStartDate(new \DateTime('now'));
 
-                $campaignType = $this->get('campaignchain.core.form.type.campaign');
-                $campaignType->setBundleName(self::BUNDLE_NAME);
-                $campaignType->setModuleIdentifier(self::MODULE_IDENTIFIER);
+                $campaignType = $this->getCampaignType();
                 $campaignType->setView('copy');
                 $campaignType->setHooksOptions(
                     array(
@@ -320,12 +299,12 @@ class ScheduledCampaignController extends Controller
                         Action::STATUS_OPEN, $scheduledCampaignForm->getName()
                     );
 
-                    $this->get('session')->getFlashBag()->add(
+                    $this->addFlash(
                         'success',
                         'The scheduled campaign <a href="'.$this->generateUrl('campaignchain_core_campaign_edit', array('id' => $clonedCampaign->getId())).'">'.$clonedCampaign->getName().'</a> was copied successfully.'
                     );
 
-                    return $this->redirect($this->generateUrl('campaignchain_core_campaign'));
+                    return $this->redirectToRoute('campaignchain_core_campaign');
                 }
 
                 return $this->render(
@@ -336,5 +315,14 @@ class ScheduledCampaignController extends Controller
                     ));
                 break;
         }
+    }
+
+
+    protected function getCampaignType() {
+        $campaignType = $this->get('campaignchain.core.form.type.campaign');
+        $campaignType->setBundleName(static::BUNDLE_NAME);
+        $campaignType->setModuleIdentifier(static::MODULE_IDENTIFIER);
+
+        return $campaignType;
     }
 }
