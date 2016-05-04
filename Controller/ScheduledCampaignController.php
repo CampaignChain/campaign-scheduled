@@ -15,6 +15,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use CampaignChain\CoreBundle\Entity\Campaign;
 use CampaignChain\CoreBundle\Entity\Module;
 use CampaignChain\CoreBundle\Entity\Action;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Serializer\Serializer;
@@ -73,11 +74,18 @@ class ScheduledCampaignController extends Controller
                 'Your new campaign <a href="'.$this->generateUrl('campaignchain_core_campaign_edit', array('id' => $campaign->getId())).'">'.$campaign->getName().'</a> was created successfully.'
             );
 
-            return $this->redirect($this->generateUrl('campaignchain_core_campaign'));
+            if ($this->getRequest()->isXmlHttpRequest()) {
+                return new JsonResponse(array(
+                    'step' => 2
+                ));
+            } else {
+                return $this->redirectToRoute('campaignchain_core_campaign');
+            }
+
         }
 
         return $this->render(
-            'CampaignChainCoreBundle:Base:new.html.twig',
+            $this->getRequest()->isXmlHttpRequest() ? 'CampaignChainCoreBundle:Base:new_modal.html.twig' : 'CampaignChainCoreBundle:Base:new.html.twig',
             array(
                 'page_title' => 'Create New Scheduled Campaign',
                 'form' => $form->createView(),
