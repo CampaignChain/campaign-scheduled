@@ -28,6 +28,8 @@ campaignchain_campaign_scheduled_plan_calendar:
 campaignchain_campaign_scheduled_new:
     pattern:  /campaign/scheduled/new
     defaults: { _controller: CampaignChainCampaignScheduledCampaignBundle:ScheduledCampaign:new }
+    options:
+        expose: true
 
 campaignchain_campaign_scheduled_edit:
     pattern:  /campaign/scheduled/{id}/edit
