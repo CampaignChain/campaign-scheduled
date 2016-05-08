@@ -78,25 +78,25 @@ class ScheduledCampaignRESTController extends BaseController
         $form->handleRequest($request);
 
         if ($form->isValid()) {
-            $repository = $this->getDoctrine()->getManager();
+            $em = $this->getDoctrine()->getManager();
 
             // Make sure that data stays intact by using transactions.
             try {
-                $repository->getConnection()->beginTransaction();
+                $em->getConnection()->beginTransaction();
 
-                $repository->persist($campaign);
+                $em->persist($campaign);
 
                 // We need the campaign ID for storing the hooks. Hence we must flush here.
-                $repository->flush();
+                $em->flush();
 
                 $hookService = $this->get('campaignchain.core.hook');
                 $campaign = $hookService->processHooks(ScheduledCampaignController::BUNDLE_NAME, ScheduledCampaignController::MODULE_IDENTIFIER, $campaign, $form, true);
 
-                $repository->flush();
+                $em->flush();
 
-                $repository->getConnection()->commit();
+                $em->getConnection()->commit();
             } catch (\Exception $e) {
-                $repository->getConnection()->rollback();
+                $em->getConnection()->rollback();
 
                 return $this->errorResponse($e->getMessage());
             }
