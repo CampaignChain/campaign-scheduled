@@ -28,3 +28,5 @@ modules:
             - campaignchain/campaign-scheduled/campaignchain-scheduled
             - campaignchain/campaign-repeating/campaignchain-repeating
             - campaignchain/campaign-template/campaignchain-template
+        services:
+            job: campaignchain.job.campaign.scheduled

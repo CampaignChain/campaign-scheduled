@@ -8,7 +8,7 @@
  * file that was distributed with this source code.
  */
 
-namespace CampaignChain\Campaign\ScheduledCampaignBundle\EntityService;
+namespace CampaignChain\Campaign\ScheduledCampaignBundle\Service;
 
 use CampaignChain\CoreBundle\Entity\Campaign;
 use Doctrine\ORM\EntityManager;
@@ -16,7 +16,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 use CampaignChain\CoreBundle\Entity\Action;
 use CampaignChain\CoreBundle\Entity\Module;
 
-class CopyService
+class Copy
 {
     const BUNDLE_NAME = 'campaignchain/campaign-scheduled';
     const MODULE_IDENTIFIER = 'campaignchain-scheduled';

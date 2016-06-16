@@ -7,5 +7,8 @@
 
 services:
     campaignchain.campaign.scheduled.copy:
-        class: CampaignChain\Campaign\ScheduledCampaignBundle\EntityService\CopyService
+        class: CampaignChain\Campaign\ScheduledCampaignBundle\Service\Copy
         arguments: [ @doctrine.orm.entity_manager, @service_container ]
+    campaignchain.job.campaign.scheduled:
+        class: CampaignChain\Campaign\ScheduledCampaignBundle\Service\Job
+        arguments: [ "@doctrine.orm.entity_manager" ]
