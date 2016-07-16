@@ -17,8 +17,13 @@
 
 namespace CampaignChain\Campaign\ScheduledCampaignBundle;
 
+use CampaignChain\Campaign\ScheduledCampaignBundle\DependencyInjection\CampaignChainCampaignScheduledCampaignExtension;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
 class CampaignChainCampaignScheduledCampaignBundle extends Bundle
 {
+    public function getContainerExtension()
+    {
+        return new CampaignChainCampaignScheduledCampaignExtension();
+    }
 }
