@@ -14,8 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 #}
 
-{% extends 'CampaignChainCoreBundle:Plan/Timeline/Activity:toolbar.html.twig' %}
+{% extends 'CampaignChainCoreBundle:Base:base.html.twig' %}
 
-{% block header_toolbar_btn_group %}
-    {{ campaign.id|campaignchain_btn_copy_campaign }}
+{% block bodytabs %}
+    {{ knp_menu_render('CampaignChainCampaignScheduledCampaignBundle:Builder:planListTab', { 'style': 'tabs' }) }}
+{% endblock %}
+
+{% block body %}
+    {% include 'CampaignChainCoreBundle:Plan/Calendar:calendar.html.twig' %}
 {% endblock %}

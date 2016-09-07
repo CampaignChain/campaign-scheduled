@@ -27,7 +27,7 @@ class PlanController extends Controller
 
     public function timelineAction(){
         return $this->render(
-            'CampaignChainCoreBundle:Plan/Timeline:index.html.twig',
+            'CampaignChainCoreBundle:Plan/Timeline/Activity:index.html.twig',
             array(
                 'page_title' => 'Plan Scheduled Campaigns',
                 'gantt_tasks' => $this->get('campaignchain.core.model.dhtmlxgantt')->getTasks(
@@ -42,7 +42,7 @@ class PlanController extends Controller
 
     public function timelineFullScreenAction(){
         return $this->render(
-            'CampaignChainCoreBundle:Plan/Timeline:fullscreen.html.twig',
+            'CampaignChainCoreBundle:Plan/Timeline/Activity:fullscreen.html.twig',
             array(
                 'page_title' => 'Plan Scheduled Campaigns',
                 'gantt_tasks' => $this->get('campaignchain.core.model.dhtmlxgantt')->getTasks(
@@ -57,11 +57,14 @@ class PlanController extends Controller
 
     public function calendarAction(){
         return $this->render(
-            'CampaignChainCoreBundle:Plan/Calendar:index.html.twig',
+            'CampaignChainCampaignScheduledCampaignBundle:Plan/Calendar:index.html.twig',
             array(
                 'page_title' => 'Plan Scheduled Campaigns',
                 'events' => $this->get('campaignchain.core.model.fullcalendar')->getEvents(
-                        self::BUNDLE_NAME, self::MODULE_IDENTIFIER
+                        array(
+                            'bundle_name' => self::BUNDLE_NAME,
+                            'module_identifier' => self::MODULE_IDENTIFIER
+                        )
                     ),
             ));
     }
