@@ -13,8 +13,11 @@
 # limitations under the License.
 
 campaignchain_campaign_scheduled_plan_timeline:
-    pattern:  /campaign/scheduled/plan/timeline
-    defaults: { _controller: CampaignChainCampaignScheduledCampaignBundle:Plan:timeline }
+    path:  /plan/campaigns
+    defaults:
+        _controller: FrameworkBundle:Redirect:redirect
+        route: campaignchain_core_plan
+        permanent: true
 
 campaignchain_campaign_scheduled_plan_timeline_fullscreen:
     pattern:  /campaign/scheduled/plan/timeline/fullscreen
