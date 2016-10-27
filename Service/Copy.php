@@ -89,7 +89,6 @@ class Copy
             $moduleService = $this->container->get('campaignchain.core.module');
             $scheduledCampaign->setCampaignModule(
                 $moduleService->getModule(
-                    Module::REPOSITORY_CAMPAIGN,
                     self::BUNDLE_NAME,
                     self::MODULE_IDENTIFIER
                 )
