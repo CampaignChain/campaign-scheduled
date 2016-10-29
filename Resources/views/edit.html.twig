@@ -17,5 +17,11 @@ limitations under the License.
 {% extends 'CampaignChainCoreBundle:Campaign:edit.html.twig' %}
 
 {% block bodytabs %}
-    {{ knp_menu_render('CampaignChainCampaignScheduledCampaignBundle:Builder:detailsTab', { 'style': 'tabs' }) }}
+    {{ knp_menu_render(
+    'CampaignChainCoreBundle:CampaignBuilder:detailsTab',
+    {
+        'template': 'CampaignChainCoreBundle:Menu:nav_top.html.twig',
+        'style': 'navbar'
+    }
+    ) }}
 {% endblock %}

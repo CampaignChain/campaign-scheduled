@@ -17,6 +17,8 @@
 
 namespace CampaignChain\Campaign\ScheduledCampaignBundle\Menu;
 
+use CampaignChain\CoreBundle\Entity\Module;
+use CampaignChain\CoreBundle\EntityService\ModuleService;
 use Knp\Menu\FactoryInterface;
 use Symfony\Component\DependencyInjection\ContainerAware;
 
@@ -39,14 +41,9 @@ class Builder extends ContainerAware
         $menu = $factory->createItem('root');
 
         $menu->addChild(
-            'List',
-            array(
-                'route' => 'campaignchain_campaign_scheduled_plan_timeline'
-            )
-        );
-        $menu->addChild(
             'Edit',
             array(
+                'label' => '.icon-pencil-square Edit',
                 'route' => 'campaignchain_campaign_scheduled_edit',
                 'routeParameters' => array(
                     'id' => $id
@@ -57,11 +54,41 @@ class Builder extends ContainerAware
             'Timeline',
             array(
                 'route' => 'campaignchain_campaign_scheduled_plan_timeline_detail',
+                'label' => '.icon-clock-o Timeline',
                 'routeParameters' => array(
                     'id' => $id
                 )
             )
         );
+
+
+        $menuCopy = $menu->addChild(
+            'Copy',
+            array(
+                'label' => '.icon-files-o Copy',
+                'routeParameters' => array(
+                    'id' => $id
+                )
+            )
+        );
+        /** @var ModuleService $moduleService */
+        $moduleService = $this->container->get('campaignchain.core.module');
+        $copyAsCampaignModules = $moduleService->getCopyAsCampaignModules($id);
+        if(count($copyAsCampaignModules)){
+            /** @var Module $module */
+            foreach ($copyAsCampaignModules as $module){
+                $menuCopy->addChild(
+                    $module->getDisplayName(),
+                    array(
+                        'label' => $module->getDisplayName(),
+                        'route' => $module->getRoutes()['copy'],
+                        'routeParameters' => array(
+                            'id' => $id
+                        )
+                    )
+                );
+            }
+        }
 
         return $menu;
     }
