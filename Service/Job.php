@@ -19,13 +19,13 @@ namespace CampaignChain\Campaign\ScheduledCampaignBundle\Service;
 
 use CampaignChain\CoreBundle\Entity\Action;
 use CampaignChain\CoreBundle\Entity\Campaign;
-use Doctrine\ORM\EntityManager;
+use Doctrine\Common\Persistence\ManagerRegistry;
 use CampaignChain\CoreBundle\Job\JobActionInterface;
 
 class Job implements JobActionInterface
 {
     /**
-     * @var EntityManager
+     * @var Registry
      */
     protected $em;
 
@@ -34,9 +34,9 @@ class Job implements JobActionInterface
      */
     protected $message;
 
-    public function __construct(EntityManager $em)
+    public function __construct(ManagerRegistry $managerRegistry)
     {
-        $this->em = $em;
+        $this->em = $managerRegistry->getManager();
     }
 
     public function execute($id)
