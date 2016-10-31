@@ -79,7 +79,7 @@ class ScheduledCampaignController extends Controller
                     'step' => 2
                 ));
             } else {
-                return $this->redirectToRoute('campaignchain_core_campaign');
+                return $this->redirectToRoute('campaignchain_core_plan_campaigns');
             }
 
         }
