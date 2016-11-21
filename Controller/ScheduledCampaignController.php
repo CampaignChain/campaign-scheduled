@@ -99,6 +99,12 @@ class ScheduledCampaignController extends Controller
         $campaignService = $this->get('campaignchain.core.campaign');
         $campaign = $campaignService->getCampaign($id);
 
+//        $db = $this->getDoctrine()->getManager();
+//        $firstAction = $db->getRepository('CampaignChain\CoreBundle\Entity\Campaign')
+//            ->getLastAction($campaign);
+//
+//        dump($firstAction);exit;
+
         $campaignType = $this->getCampaignType();
 
         $form = $this->createForm($campaignType, $campaign);
