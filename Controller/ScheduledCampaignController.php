@@ -97,13 +97,28 @@ class ScheduledCampaignController extends Controller
         // TODO: If a campaign is ongoing, only the end date can be changed.
         // TODO: If a campaign is done, it cannot be edited.
         $campaignService = $this->get('campaignchain.core.campaign');
+        /** @var Campaign $campaign */
         $campaign = $campaignService->getCampaign($id);
 
-//        $db = $this->getDoctrine()->getManager();
-//        $firstAction = $db->getRepository('CampaignChain\CoreBundle\Entity\Campaign')
-//            ->getLastAction($campaign);
-//
-//        dump($firstAction);exit;
+        $em = $this->getDoctrine()->getManager();
+
+        /** @var Action $firstAction */
+        $firstAction = $em->getRepository('CampaignChain\CoreBundle\Entity\Campaign')
+            ->getFirstAction($campaign);
+        if($firstAction) {
+            $campaign->setPostStartDateLimit($firstAction->getStartDate());
+        }
+
+        /** @var Action $lastAction */
+        $lastAction = $em->getRepository('CampaignChain\CoreBundle\Entity\Campaign')
+            ->getLastAction($campaign);
+        if($lastAction) {
+            if (!$lastAction->getEndDate()) {
+                $campaign->setPreEndDateLimit($lastAction->getStartDate());
+            } else {
+                $campaign->setPreEndDateLimit($lastAction->getEndDate());
+            }
+        }
 
         $campaignType = $this->getCampaignType();
 
@@ -112,20 +127,69 @@ class ScheduledCampaignController extends Controller
         $form->handleRequest($request);
 
         if ($form->isValid()) {
-            $em = $this->getDoctrine()->getManager();
+            try {
+                $em->getConnection()->beginTransaction();
 
-            $hookService = $this->get('campaignchain.core.hook');
-            $campaign = $hookService->processHooks(self::BUNDLE_NAME, self::MODULE_IDENTIFIER, $campaign, $form);
-            $em->persist($campaign);
+                // Remember dates to detect changes.
+                $campaignStartDate = $campaign->getStartDate();
+                $campaignEndDate = $campaign->getEndDate();
 
-            $em->flush();
+                $hookService = $this->get('campaignchain.core.hook');
+                $campaign = $hookService->processHooks(self::BUNDLE_NAME, self::MODULE_IDENTIFIER, $campaign, $form);
+                $em->persist($campaign);
+                $em->flush();
 
-            $this->addFlash(
-                'success',
-                'Your campaign <a href="'.$this->generateUrl('campaignchain_core_campaign_edit', array('id' => $campaign->getId())).'">'.$campaign->getName().'</a> was edited successfully.'
-            );
+                /*
+                 * Find out if the start or end date was changed. If so, then
+                 * make sure that while editing, no Actions have been added
+                 * prior or after the respective date.
+                 */
 
-            return $this->redirectToRoute('campaignchain_core_campaign');
+                // Check new start date.
+                if($campaignStartDate != $campaign->getStartDate()){
+                    /*
+                     * While changing the campaign start date, has an earlier
+                     * Action been added by someone else?
+                     */
+                    /** @var Action $firstAction */
+                    $firstAction = $em->getRepository('CampaignChain\CoreBundle\Entity\Campaign')
+                        ->getFirstAction($campaign);
+
+                    if($firstAction && $campaign->getStartDate() > $firstAction->getStartDate()){
+                        throw new \Exception('While you edited the campaign, someone else added or changed an Activity or Milestone which now has an earlier start date than the campaign.');
+                    }
+                }
+
+                // Check new end date.
+                if($campaignEndDate != $campaign->getEndDate()){
+                    /*
+                     * While changing the campaign end date, has a later
+                     * Action been added by someone else?
+                     */
+                    /** @var Action $firstAction */
+                    $lastAction = $em->getRepository('CampaignChain\CoreBundle\Entity\Campaign')
+                        ->getLastAction($campaign);
+
+                    if($lastAction && $campaign->getEndDate() < $lastAction->getStartDate()){
+                        throw new \Exception('While you edited the campaign, someone else added or changed an Activity or Milestone which now has a later start date than the campaign end date.');
+                    }
+                }
+
+
+                $this->addFlash(
+                    'success',
+                    'Your campaign <a href="'.$this->generateUrl('campaignchain_core_campaign_edit', array('id' => $campaign->getId())).'">'.$campaign->getName().'</a> was edited successfully.'
+                );
+
+                return $this->redirectToRoute('campaignchain_core_campaign');
+                $em->getConnection()->commit();
+            } catch (\Exception $e) {
+                $em->getConnection()->rollback();
+                $this->addFlash(
+                    'warning',
+                    $e->getMessage()
+                );
+            }
         }
 
         return $this->render(
