@@ -237,16 +237,50 @@ class ScheduledCampaignController extends Controller
         $campaign->setName($data['name']);
         $campaign->setTimezone($data['timezone']);
 
-        $em = $this->getDoctrine()->getManager();
-        $em->persist($campaign);
-
-        $hookService = $this->get('campaignchain.core.hook');
-        $hookService->processHooks(self::BUNDLE_NAME, self::MODULE_IDENTIFIER, $campaign, $data);
-
-        $em->flush();
-
+        // Remember original dates.
         $responseData['start_date'] = $campaign->getStartDate()->format(\DateTime::ISO8601);
         $responseData['end_date'] = $campaign->getEndDate()->format(\DateTime::ISO8601);
+
+        // Clear all flash bags.
+        $this->get('session')->getFlashBag()->clear();
+
+        $em = $this->getDoctrine()->getManager();
+
+        // Make sure that data stays intact by using transactions.
+        try {
+            $em->getConnection()->beginTransaction();
+
+            $em->persist($campaign);
+
+            $hookService = $this->get('campaignchain.core.hook');
+            $hookService->processHooks(self::BUNDLE_NAME, self::MODULE_IDENTIFIER, $campaign, $data);
+
+            $em->flush();
+
+            $responseData['start_date'] = $campaign->getStartDate()->format(\DateTime::ISO8601);
+            $responseData['end_date'] = $campaign->getEndDate()->format(\DateTime::ISO8601);
+            $responseData['success'] = true;
+
+            $em->getConnection()->commit();
+        } catch (\Exception $e) {
+            $em->getConnection()->rollback();
+
+            $this->addFlash(
+                'warning',
+                $e->getMessage().' '.$e->getFile().' '.$e->getLine().' '.$e->getTraceAsString()
+            );
+
+            $this->getLogger()->error($e->getMessage(), array(
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTrace(),
+            ));
+
+            $responseData['message'] = $e->getMessage();
+            $responseData['success'] = false;
+        }
+
+        $responseData['status'] = $campaign->getStatus();
 
         $serializer = $this->get('campaignchain.core.serializer.default');
 
