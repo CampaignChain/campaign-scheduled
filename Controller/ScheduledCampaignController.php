@@ -30,6 +30,11 @@ class ScheduledCampaignController extends Controller
     const BUNDLE_NAME = 'campaignchain/campaign-scheduled';
     const MODULE_IDENTIFIER = 'campaignchain-scheduled';
 
+    public function getLogger()
+    {
+        return $this->has('monolog.logger.external') ? $this->get('monolog.logger.external') : $this->get('monolog.logger');
+    }
+
     public function newAction(Request $request)
     {
         // create a campaign and give it some dummy data for this example
@@ -94,8 +99,6 @@ class ScheduledCampaignController extends Controller
 
     public function editAction(Request $request, $id)
     {
-        // TODO: If a campaign is ongoing, only the end date can be changed.
-        // TODO: If a campaign is done, it cannot be edited.
         $campaignService = $this->get('campaignchain.core.campaign');
         /** @var Campaign $campaign */
         $campaign = $campaignService->getCampaign($id);
@@ -139,42 +142,11 @@ class ScheduledCampaignController extends Controller
                 $em->persist($campaign);
                 $em->flush();
 
-                /*
-                 * Find out if the start or end date was changed. If so, then
-                 * make sure that while editing, no Actions have been added
-                 * prior or after the respective date.
-                 */
-
                 // Check new start date.
-                if($campaignStartDate != $campaign->getStartDate()){
-                    /*
-                     * While changing the campaign start date, has an earlier
-                     * Action been added by someone else?
-                     */
-                    /** @var Action $firstAction */
-                    $firstAction = $em->getRepository('CampaignChain\CoreBundle\Entity\Campaign')
-                        ->getFirstAction($campaign);
-
-                    if($firstAction && $campaign->getStartDate() > $firstAction->getStartDate()){
-                        throw new \Exception('While you edited the campaign, someone else added or changed an Activity or Milestone which now has an earlier start date than the campaign.');
-                    }
-                }
+                $this->checkNewStartDate($campaign, $campaignStartDate);
 
                 // Check new end date.
-                if($campaignEndDate != $campaign->getEndDate()){
-                    /*
-                     * While changing the campaign end date, has a later
-                     * Action been added by someone else?
-                     */
-                    /** @var Action $firstAction */
-                    $lastAction = $em->getRepository('CampaignChain\CoreBundle\Entity\Campaign')
-                        ->getLastAction($campaign);
-
-                    if($lastAction && $campaign->getEndDate() < $lastAction->getStartDate()){
-                        throw new \Exception('While you edited the campaign, someone else added or changed an Activity or Milestone which now has a later start date than the campaign end date.');
-                    }
-                }
-
+                $this->checkNewEndDate($campaign, $campaignEndDate);
 
                 $this->addFlash(
                     'success',
@@ -209,6 +181,26 @@ class ScheduledCampaignController extends Controller
         $campaignService = $this->get('campaignchain.core.campaign');
         $campaign = $campaignService->getCampaign($id);
 
+        $em = $this->getDoctrine()->getManager();
+
+        /** @var Action $firstAction */
+        $firstAction = $em->getRepository('CampaignChain\CoreBundle\Entity\Campaign')
+            ->getFirstAction($campaign);
+        if($firstAction) {
+            $campaign->setPostStartDateLimit($firstAction->getStartDate());
+        }
+
+        /** @var Action $lastAction */
+        $lastAction = $em->getRepository('CampaignChain\CoreBundle\Entity\Campaign')
+            ->getLastAction($campaign);
+        if($lastAction) {
+            if (!$lastAction->getEndDate()) {
+                $campaign->setPreEndDateLimit($lastAction->getStartDate());
+            } else {
+                $campaign->setPreEndDateLimit($lastAction->getEndDate());
+            }
+        }
+
         $campaignType = $this->getCampaignType();
         $campaignType->setView('default');
 
@@ -233,6 +225,7 @@ class ScheduledCampaignController extends Controller
         $responseData['data'] = $data;
 
         $campaignService = $this->get('campaignchain.core.campaign');
+        /** @var Campaign $campaign */
         $campaign = $campaignService->getCampaign($id);
         $campaign->setName($data['name']);
         $campaign->setTimezone($data['timezone']);
@@ -250,12 +243,22 @@ class ScheduledCampaignController extends Controller
         try {
             $em->getConnection()->beginTransaction();
 
+            // Remember dates to detect changes.
+            $campaignStartDate = $campaign->getStartDate();
+            $campaignEndDate = $campaign->getEndDate();
+
             $em->persist($campaign);
 
             $hookService = $this->get('campaignchain.core.hook');
             $hookService->processHooks(self::BUNDLE_NAME, self::MODULE_IDENTIFIER, $campaign, $data);
 
             $em->flush();
+
+            // Check new start date.
+            $this->checkNewStartDate($campaign, $campaignStartDate);
+
+            // Check new end date.
+            $this->checkNewEndDate($campaign, $campaignEndDate);
 
             $responseData['start_date'] = $campaign->getStartDate()->format(\DateTime::ISO8601);
             $responseData['end_date'] = $campaign->getEndDate()->format(\DateTime::ISO8601);
@@ -267,7 +270,7 @@ class ScheduledCampaignController extends Controller
 
             $this->addFlash(
                 'warning',
-                $e->getMessage().' '.$e->getFile().' '.$e->getLine().' '.$e->getTraceAsString()
+                $e->getMessage()
             );
 
             $this->getLogger()->error($e->getMessage(), array(
@@ -443,5 +446,57 @@ class ScheduledCampaignController extends Controller
         $campaignType->setModuleIdentifier(static::MODULE_IDENTIFIER);
 
         return $campaignType;
+    }
+
+    /**
+     * Find out if the start date was changed. If so, then make sure that while
+     * editing, no Actions have been added prior or after the respective date.
+     *
+     * @param Campaign $campaign
+     * @param \DateTime $newStartDate
+     * @throws \Exception
+     */
+    private function checkNewStartDate(Campaign $campaign, \DateTime $newStartDate)
+    {
+        if($newStartDate != $campaign->getStartDate()){
+            /*
+             * While changing the campaign start date, has an earlier
+             * Action been added by someone else?
+             */
+            $em = $this->getDoctrine()->getManager();
+            /** @var Action $firstAction */
+            $firstAction = $em->getRepository('CampaignChain\CoreBundle\Entity\Campaign')
+                ->getFirstAction($campaign);
+
+            if($firstAction && $campaign->getStartDate() > $firstAction->getStartDate()){
+                throw new \Exception('While you edited the campaign, someone else added or changed an Activity or Milestone which now has an earlier start date than the campaign.');
+            }
+        }
+    }
+
+    /**
+     * Find out if the end date was changed. If so, then make sure that while
+     * editing, no Actions have been added prior or after the respective date.
+     *
+     * @param Campaign $campaign
+     * @param \DateTime $newEndDate
+     * @throws \Exception
+     */
+    private function checkNewEndDate(Campaign $campaign, \DateTime $newEndDate)
+    {
+        if($newEndDate != $campaign->getEndDate()){
+            /*
+             * While changing the campaign end date, has a later
+             * Action been added by someone else?
+             */
+            $em = $this->getDoctrine()->getManager();
+            /** @var Action $firstAction */
+            $lastAction = $em->getRepository('CampaignChain\CoreBundle\Entity\Campaign')
+                ->getLastAction($campaign);
+
+            if($lastAction && $campaign->getEndDate() < $lastAction->getStartDate()){
+                throw new \Exception('While you edited the campaign, someone else added or changed an Activity or Milestone which now has a later start date than the campaign end date.');
+            }
+        }
     }
 }
