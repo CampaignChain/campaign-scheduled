@@ -153,8 +153,9 @@ class ScheduledCampaignController extends Controller
                     'Your campaign <a href="'.$this->generateUrl('campaignchain_core_campaign_edit', array('id' => $campaign->getId())).'">'.$campaign->getName().'</a> was edited successfully.'
                 );
 
-                return $this->redirectToRoute('campaignchain_core_campaign');
                 $em->getConnection()->commit();
+
+                return $this->redirectToRoute('campaignchain_core_campaign');
             } catch (\Exception $e) {
                 $em->getConnection()->rollback();
                 $this->addFlash(
