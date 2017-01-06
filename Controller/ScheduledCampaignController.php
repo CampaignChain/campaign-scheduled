@@ -17,6 +17,8 @@
 
 namespace CampaignChain\Campaign\ScheduledCampaignBundle\Controller;
 
+use CampaignChain\CoreBundle\EntityService\HookService;
+use CampaignChain\CoreBundle\Exception\ErrorCode;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use CampaignChain\CoreBundle\Entity\Campaign;
 use CampaignChain\CoreBundle\Entity\Action;
@@ -63,8 +65,10 @@ class ScheduledCampaignController extends Controller
                 // We need the campaign ID for storing the hooks. Hence we must flush here.
                 $em->flush();
 
+                /** @var HookService $hookService */
                 $hookService = $this->get('campaignchain.core.hook');
-                $campaign = $hookService->processHooks(self::BUNDLE_NAME, self::MODULE_IDENTIFIER, $campaign, $form, true);
+                $hookService->processHooks(self::BUNDLE_NAME, self::MODULE_IDENTIFIER, $campaign, $form, true);
+                $campaign = $hookService->getEntity();
 
                 $em->flush();
 
@@ -103,26 +107,6 @@ class ScheduledCampaignController extends Controller
         /** @var Campaign $campaign */
         $campaign = $campaignService->getCampaign($id);
 
-        $em = $this->getDoctrine()->getManager();
-
-        /** @var Action $firstAction */
-        $firstAction = $em->getRepository('CampaignChain\CoreBundle\Entity\Campaign')
-            ->getFirstAction($campaign);
-        if($firstAction) {
-            $campaign->setPostStartDateLimit($firstAction->getStartDate());
-        }
-
-        /** @var Action $lastAction */
-        $lastAction = $em->getRepository('CampaignChain\CoreBundle\Entity\Campaign')
-            ->getLastAction($campaign);
-        if($lastAction) {
-            if (!$lastAction->getEndDate()) {
-                $campaign->setPreEndDateLimit($lastAction->getStartDate());
-            } else {
-                $campaign->setPreEndDateLimit($lastAction->getEndDate());
-            }
-        }
-
         $campaignType = $this->getCampaignType();
 
         $form = $this->createForm($campaignType, $campaign);
@@ -130,23 +114,17 @@ class ScheduledCampaignController extends Controller
         $form->handleRequest($request);
 
         if ($form->isValid()) {
+            $em = $this->getDoctrine()->getManager();
+
             try {
                 $em->getConnection()->beginTransaction();
 
-                // Remember dates to detect changes.
-                $campaignStartDate = $campaign->getStartDate();
-                $campaignEndDate = $campaign->getEndDate();
-
+                /** @var HookService $hookService */
                 $hookService = $this->get('campaignchain.core.hook');
-                $campaign = $hookService->processHooks(self::BUNDLE_NAME, self::MODULE_IDENTIFIER, $campaign, $form);
+                $hookService->processHooks(self::BUNDLE_NAME, self::MODULE_IDENTIFIER, $campaign, $form);
+                $campaign = $hookService->getEntity();
                 $em->persist($campaign);
                 $em->flush();
-
-                // Check new start date.
-                $this->checkNewStartDate($campaign, $campaignStartDate);
-
-                // Check new end date.
-                $this->checkNewEndDate($campaign, $campaignEndDate);
 
                 $this->addFlash(
                     'success',
@@ -154,8 +132,6 @@ class ScheduledCampaignController extends Controller
                 );
 
                 $em->getConnection()->commit();
-
-                return $this->redirectToRoute('campaignchain_core_campaign');
             } catch (\Exception $e) {
                 $em->getConnection()->rollback();
                 $this->addFlash(
@@ -177,30 +153,8 @@ class ScheduledCampaignController extends Controller
 
     public function editModalAction(Request $request, $id)
     {
-        // TODO: If a campaign is ongoing, only the end date can be changed.
-        // TODO: If a campaign is done, it cannot be edited.
         $campaignService = $this->get('campaignchain.core.campaign');
         $campaign = $campaignService->getCampaign($id);
-
-        $em = $this->getDoctrine()->getManager();
-
-        /** @var Action $firstAction */
-        $firstAction = $em->getRepository('CampaignChain\CoreBundle\Entity\Campaign')
-            ->getFirstAction($campaign);
-        if($firstAction) {
-            $campaign->setPostStartDateLimit($firstAction->getStartDate());
-        }
-
-        /** @var Action $lastAction */
-        $lastAction = $em->getRepository('CampaignChain\CoreBundle\Entity\Campaign')
-            ->getLastAction($campaign);
-        if($lastAction) {
-            if (!$lastAction->getEndDate()) {
-                $campaign->setPreEndDateLimit($lastAction->getStartDate());
-            } else {
-                $campaign->setPreEndDateLimit($lastAction->getEndDate());
-            }
-        }
 
         $campaignType = $this->getCampaignType();
         $campaignType->setView('default');
@@ -231,10 +185,6 @@ class ScheduledCampaignController extends Controller
         $campaign->setName($data['name']);
         $campaign->setTimezone($data['timezone']);
 
-        // Remember original dates.
-        $responseData['start_date'] = $campaign->getStartDate()->format(\DateTime::ISO8601);
-        $responseData['end_date'] = $campaign->getEndDate()->format(\DateTime::ISO8601);
-
         // Clear all flash bags.
         $this->get('session')->getFlashBag()->clear();
 
@@ -244,35 +194,40 @@ class ScheduledCampaignController extends Controller
         try {
             $em->getConnection()->beginTransaction();
 
-            // Remember dates to detect changes.
-            $campaignStartDate = $campaign->getStartDate();
-            $campaignEndDate = $campaign->getEndDate();
-
             $em->persist($campaign);
 
+            /** @var HookService $hookService */
             $hookService = $this->get('campaignchain.core.hook');
             $hookService->processHooks(self::BUNDLE_NAME, self::MODULE_IDENTIFIER, $campaign, $data);
+            $campaign = $hookService->getEntity();
 
-            $em->flush();
+            if($hookService->hasErrors()){
+                foreach($hookService->getErrorCodes() as $errorCode){
+                    $responseData['message'] = ErrorCode::getMessageByCode($errorCode);
+                }
 
-            // Check new start date.
-            $this->checkNewStartDate($campaign, $campaignStartDate);
+                $responseData['success'] = false;
 
-            // Check new end date.
-            $this->checkNewEndDate($campaign, $campaignEndDate);
+                if($campaign->getPostStartDateLimit()){
+                    $responseData['post_start_date_limit'] = $campaign->getPostStartDateLimit()->format(\DateTime::ISO8601);
+                }
+            } else {
+                $em->flush();
+
+                $responseData['success'] = true;
+            }
 
             $responseData['start_date'] = $campaign->getStartDate()->format(\DateTime::ISO8601);
             $responseData['end_date'] = $campaign->getEndDate()->format(\DateTime::ISO8601);
-            $responseData['success'] = true;
 
             $em->getConnection()->commit();
         } catch (\Exception $e) {
             $em->getConnection()->rollback();
 
-            $this->addFlash(
-                'warning',
-                $e->getMessage()
-            );
+//            $this->addFlash(
+//                'warning',
+//                $e->getMessage()
+//            );
 
             $this->getLogger()->error($e->getMessage(), array(
                 'file' => $e->getFile(),
@@ -440,64 +395,11 @@ class ScheduledCampaignController extends Controller
         }
     }
 
-
     protected function getCampaignType() {
         $campaignType = $this->get('campaignchain.core.form.type.campaign');
         $campaignType->setBundleName(static::BUNDLE_NAME);
         $campaignType->setModuleIdentifier(static::MODULE_IDENTIFIER);
 
         return $campaignType;
-    }
-
-    /**
-     * Find out if the start date was changed. If so, then make sure that while
-     * editing, no Actions have been added prior or after the respective date.
-     *
-     * @param Campaign $campaign
-     * @param \DateTime $newStartDate
-     * @throws \Exception
-     */
-    private function checkNewStartDate(Campaign $campaign, \DateTime $newStartDate)
-    {
-        if($newStartDate != $campaign->getStartDate()){
-            /*
-             * While changing the campaign start date, has an earlier
-             * Action been added by someone else?
-             */
-            $em = $this->getDoctrine()->getManager();
-            /** @var Action $firstAction */
-            $firstAction = $em->getRepository('CampaignChain\CoreBundle\Entity\Campaign')
-                ->getFirstAction($campaign);
-
-            if($firstAction && $campaign->getStartDate() > $firstAction->getStartDate()){
-                throw new \Exception('While you edited the campaign, someone else added or changed an Activity or Milestone which now has an earlier start date than the campaign.');
-            }
-        }
-    }
-
-    /**
-     * Find out if the end date was changed. If so, then make sure that while
-     * editing, no Actions have been added prior or after the respective date.
-     *
-     * @param Campaign $campaign
-     * @param \DateTime $newEndDate
-     * @throws \Exception
-     */
-    private function checkNewEndDate(Campaign $campaign, \DateTime $newEndDate)
-    {
-        if($newEndDate != $campaign->getEndDate()){
-            /*
-             * While changing the campaign end date, has a later
-             * Action been added by someone else?
-             */
-            $em = $this->getDoctrine()->getManager();
-            /** @var Action $firstAction */
-            $lastAction = $em->getRepository('CampaignChain\CoreBundle\Entity\Campaign')
-                ->getLastAction($campaign);
-
-            if($lastAction && $campaign->getEndDate() < $lastAction->getStartDate()){
-                throw new \Exception('While you edited the campaign, someone else added or changed an Activity or Milestone which now has a later start date than the campaign end date.');
-            }
-        }
     }
 }

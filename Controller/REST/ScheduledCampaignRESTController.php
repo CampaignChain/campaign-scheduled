@@ -20,6 +20,7 @@ namespace CampaignChain\Campaign\ScheduledCampaignBundle\Controller\REST;
 use CampaignChain\Campaign\ScheduledCampaignBundle\Controller\ScheduledCampaignController;
 use CampaignChain\CoreBundle\Controller\REST\BaseController;
 use CampaignChain\CoreBundle\Entity\Campaign;
+use CampaignChain\CoreBundle\EntityService\HookService;
 use FOS\RestBundle\Controller\Annotations as REST;
 use Nelmio\ApiDocBundle\Annotation\ApiDoc;
 use Symfony\Component\HttpFoundation\Request;
@@ -96,9 +97,10 @@ class ScheduledCampaignRESTController extends BaseController
                 // We need the campaign ID for storing the hooks. Hence we must flush here.
                 $em->flush();
 
+                /** @var HookService $hookService */
                 $hookService = $this->get('campaignchain.core.hook');
-                $campaign = $hookService->processHooks(ScheduledCampaignController::BUNDLE_NAME, ScheduledCampaignController::MODULE_IDENTIFIER, $campaign, $form, true);
-
+                $hookService->processHooks(ScheduledCampaignController::BUNDLE_NAME, ScheduledCampaignController::MODULE_IDENTIFIER, $campaign, $form, true);
+                $campaign = $hookService->getEntity();
                 $em->flush();
 
                 $em->getConnection()->commit();
