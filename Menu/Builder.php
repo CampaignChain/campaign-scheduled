@@ -20,10 +20,13 @@ namespace CampaignChain\Campaign\ScheduledCampaignBundle\Menu;
 use CampaignChain\CoreBundle\Entity\Module;
 use CampaignChain\CoreBundle\EntityService\ModuleService;
 use Knp\Menu\FactoryInterface;
-use Symfony\Component\DependencyInjection\ContainerAware;
+use Symfony\Component\DependencyInjection\ContainerAwareInterface;
+use Symfony\Component\DependencyInjection\ContainerAwareTrait;
 
-class Builder extends ContainerAware
+class Builder implements ContainerAwareInterface
 {
+    use ContainerAwareTrait;
+
     public function planListTab(FactoryInterface $factory, array $options)
     {
         $menu = $factory->createItem('root');
@@ -36,7 +39,7 @@ class Builder extends ContainerAware
 
     public function detailsTab(FactoryInterface $factory, array $options)
     {
-        $id = $this->container->get('request')->get('id');
+        $id = $this->container->get('request_stack')->getCurrentRequest()->get('id');
 
         $menu = $factory->createItem('root');
 

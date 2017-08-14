@@ -20,45 +20,45 @@ campaignchain_campaign_scheduled_plan_timeline:
         permanent: true
 
 campaignchain_campaign_scheduled_plan_timeline_fullscreen:
-    pattern:  /campaign/scheduled/plan/timeline/fullscreen
+    path:  /campaign/scheduled/plan/timeline/fullscreen
     defaults: { _controller: CampaignChainCampaignScheduledCampaignBundle:Plan:timelineFullScreen }
 
 campaignchain_campaign_scheduled_plan_timeline_detail:
-    pattern:  /campaign/scheduled/plan/timeline/{id}
+    path:  /campaign/scheduled/plan/timeline/{id}
     defaults: { _controller: CampaignChainCampaignScheduledCampaignBundle:Plan:timelineDetail }
     options:
         expose: true
 
 campaignchain_campaign_scheduled_plan_timeline_detail_fullscreen:
-    pattern:  /campaign/scheduled/plan/timeline/fullscreen/{id}
+    path:  /campaign/scheduled/plan/timeline/fullscreen/{id}
     defaults: { _controller: CampaignChainCampaignScheduledCampaignBundle:Plan:timelineDetailFullScreen }
 
 campaignchain_campaign_scheduled_plan_calendar:
-    pattern:  /campaign/scheduled/plan/calendar
+    path:  /campaign/scheduled/plan/calendar
     defaults: { _controller: CampaignChainCampaignScheduledCampaignBundle:Plan:calendar }
 
 campaignchain_campaign_scheduled_new:
-    pattern:  /campaign/scheduled/new
+    path:  /campaign/scheduled/new
     defaults: { _controller: CampaignChainCampaignScheduledCampaignBundle:ScheduledCampaign:new }
     options:
         expose: true
 
 campaignchain_campaign_scheduled_edit:
-    pattern:  /campaign/scheduled/{id}/edit
+    path:  /campaign/scheduled/{id}/edit
     defaults: { _controller: CampaignChainCampaignScheduledCampaignBundle:ScheduledCampaign:edit }
 
 campaignchain_campaign_scheduled_edit_modal:
-    pattern:  /modal/campaign/scheduled/{id}/edit
+    path:  /modal/campaign/scheduled/{id}/edit
     defaults: { _controller: CampaignChainCampaignScheduledCampaignBundle:ScheduledCampaign:editModal }
 
 campaignchain_campaign_scheduled_edit_api:
-    pattern:  /api/private/campaign/scheduled/{id}/edit
+    path:  /api/private/campaign/scheduled/{id}/edit
     defaults: { _controller: CampaignChainCampaignScheduledCampaignBundle:ScheduledCampaign:editApi }
     options:
         expose: true
 
 campaignchain_campaign_scheduled_copy:
-    pattern:  /campaign/scheduled/copy/{id}
+    path:  /campaign/scheduled/copy/{id}
     defaults: { _controller: CampaignChainCampaignScheduledCampaignBundle:ScheduledCampaign:copy }
 
 # REST routes are being created automatically via FOSRestBundle.
