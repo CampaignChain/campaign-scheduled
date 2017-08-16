@@ -17,10 +17,10 @@
         "docs": "http://doc.campaignchain.com"
     },
     "require": {
-        "campaignchain/core": "dev-master",
-        "campaignchain/hook-duration": "dev-master",
-        "campaignchain/hook-assignee": "dev-master",
-        "campaignchain/campaign-template": "dev-master"
+        "campaignchain/core": "1.0.x-dev",
+        "campaignchain/hook-duration": "1.0.x-dev",
+        "campaignchain/hook-assignee": "1.0.x-dev",
+        "campaignchain/campaign-template": "1.0.x-dev"
     },
     "autoload": {
         "psr-4": { "CampaignChain\\Campaign\\ScheduledCampaignBundle\\": "" }
