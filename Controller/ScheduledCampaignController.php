@@ -83,7 +83,7 @@ class ScheduledCampaignController extends Controller
                 'Your new campaign <a href="'.$this->generateUrl('campaignchain_core_campaign_edit', array('id' => $campaign->getId())).'">'.$campaign->getName().'</a> was created successfully.'
             );
 
-            if ($this->getRequest()->isXmlHttpRequest()) {
+            if ($request->isXmlHttpRequest()) {
                 return new JsonResponse(array(
                     'step' => 2
                 ));
@@ -94,7 +94,7 @@ class ScheduledCampaignController extends Controller
         }
 
         return $this->render(
-            $this->getRequest()->isXmlHttpRequest() ? 'CampaignChainCoreBundle:Base:new_modal.html.twig' : 'CampaignChainCoreBundle:Base:new.html.twig',
+            $request->isXmlHttpRequest() ? 'CampaignChainCoreBundle:Base:new_modal.html.twig' : 'CampaignChainCoreBundle:Base:new.html.twig',
             array(
                 'page_title' => 'Create New Scheduled Campaign',
                 'form' => $form->createView(),
