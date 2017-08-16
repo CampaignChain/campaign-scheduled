@@ -19,6 +19,7 @@ namespace CampaignChain\Campaign\ScheduledCampaignBundle\Controller;
 
 use CampaignChain\CoreBundle\EntityService\HookService;
 use CampaignChain\CoreBundle\Exception\ErrorCode;
+use CampaignChain\CoreBundle\Form\Type\CampaignType;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use CampaignChain\CoreBundle\Entity\Campaign;
 use CampaignChain\CoreBundle\Entity\Action;
@@ -47,9 +48,7 @@ class ScheduledCampaignController extends Controller
         $campaign->setStartDate($now);
         $campaign->setEndDate($now->modify('+1 day'));
 
-        $campaignType = $this->getCampaignType();
-
-        $form = $this->createForm($campaignType, $campaign);
+        $form = $this->createForm(CampaignType::class, $campaign, $this->getCampaignTypeOptions());
 
         $form->handleRequest($request);
 
@@ -107,9 +106,7 @@ class ScheduledCampaignController extends Controller
         /** @var Campaign $campaign */
         $campaign = $campaignService->getCampaign($id);
 
-        $campaignType = $this->getCampaignType();
-
-        $form = $this->createForm($campaignType, $campaign);
+        $form = $this->createForm(CampaignType::class, $campaign, $this->getCampaignTypeOptions());
 
         $form->handleRequest($request);
 
@@ -156,10 +153,7 @@ class ScheduledCampaignController extends Controller
         $campaignService = $this->get('campaignchain.core.campaign');
         $campaign = $campaignService->getCampaign($id);
 
-        $campaignType = $this->getCampaignType();
-        $campaignType->setView('default');
-
-        $form = $this->createForm($campaignType, $campaign);
+        $form = $this->createForm(CampaignType::class, $campaign, $this->getCampaignTypeOptions());
 
         return $this->render(
             'CampaignChainCoreBundle:Campaign:edit_modal.html.twig',
@@ -259,18 +253,17 @@ class ScheduledCampaignController extends Controller
                 $interval = $toCampaign->getStartDate()->diff($toCampaign->getEndDate());
                 $toCampaign->setStartDate(new \DateTime('now'));
 
-                $campaignType = $this->getCampaignType();
-                $campaignType->setView('copy');
-                $campaignType->setHooksOptions(
+                $campaignTypeOptions = $this->getCampaignTypeOptions();
+                $campaignTypeOptions['view'] = 'copy';
+                $campaignTypeOptions['hooks_options'] =
                     array(
                         'campaignchain-due' => array(
                             'label' => 'Start Date',
                             'help_text' => 'Ends after '.$interval->format("%a").' days.',
                         )
-                    )
-                );
+                    );
 
-                $form = $this->createForm($campaignType, $toCampaign);
+                $form = $this->createForm(CampaignType::class, $toCampaign, $campaignTypeOptions);
 
                 $form->handleRequest($request);
 
@@ -307,18 +300,17 @@ class ScheduledCampaignController extends Controller
                 $interval = $campaignTemplate->getStartDate()->diff($campaignTemplate->getEndDate());
                 $scheduledCampaignForm->setStartDate(new \DateTime('now'));
 
-                $campaignType = $this->getCampaignType();
-                $campaignType->setView('copy');
-                $campaignType->setHooksOptions(
+                $campaignTypeOptions = $this->getCampaignTypeOptions();
+                $campaignTypeOptions['view'] = 'copy';
+                $campaignTypeOptions['hooks_options'] =
                     array(
                         'campaignchain-due' => array(
                             'label' => 'Start Date',
                             'help_text' => 'Ends after '.$interval->format("%a").' days.',
                         )
-                    )
-                );
+                    );
 
-                $form = $this->createForm($campaignType, $scheduledCampaignForm);
+                $form = $this->createForm(CampaignType::class, $scheduledCampaignForm, $campaignTypeOptions);
 
                 $form->handleRequest($request);
 
@@ -354,18 +346,17 @@ class ScheduledCampaignController extends Controller
                 $interval = $repeatingCampaign->getStartDate()->diff($repeatingCampaign->getEndDate());
                 $scheduledCampaignForm->setStartDate(new \DateTime('now'));
 
-                $campaignType = $this->getCampaignType();
-                $campaignType->setView('copy');
-                $campaignType->setHooksOptions(
+                $campaignTypeOptions = $this->getCampaignTypeOptions();
+                $campaignTypeOptions['view'] = 'copy';
+                $campaignTypeOptions['hooks_options'] =
                     array(
                         'campaignchain-due' => array(
                             'label' => 'Start Date',
                             'help_text' => 'Ends after '.$interval->format("%a").' days.',
                         )
-                    )
-                );
+                    );
 
-                $form = $this->createForm($campaignType, $scheduledCampaignForm);
+                $form = $this->createForm(CampaignType::class, $scheduledCampaignForm, $campaignTypeOptions);
 
                 $form->handleRequest($request);
 
@@ -395,11 +386,10 @@ class ScheduledCampaignController extends Controller
         }
     }
 
-    protected function getCampaignType() {
-        $campaignType = $this->get('campaignchain.core.form.type.campaign');
-        $campaignType->setBundleName(static::BUNDLE_NAME);
-        $campaignType->setModuleIdentifier(static::MODULE_IDENTIFIER);
+    protected function getCampaignTypeOptions() {
+        $options['bundle_name'] = static::BUNDLE_NAME;
+        $options['module_identifier'] = static::MODULE_IDENTIFIER;
 
-        return $campaignType;
+        return $options;
     }
 }
